@@ -1,0 +1,204 @@
+/* DESIGN SYSTEM - PREMIUM MODERN UI */
+:root {
+  /* HSL Color Palette - Vibrant Indigo/Purple */
+  --primary: hsl(239, 84%, 67%);
+  --primary-hover: hsl(239, 84%, 60%);
+  --secondary: hsl(215, 16%, 47%);
+  --accent: hsl(282, 84%, 67%);
+  --success: hsl(152, 69%, 45%);
+  --warning: hsl(35, 92%, 53%);
+  --danger: hsl(348, 83%, 54%);
+  
+  --bg-app: hsl(220, 33%, 98%); /* Off-white Slate */
+  --surface: hsl(0, 0%, 100%);
+  
+  --text-main: hsl(222, 47%, 11%);
+  --text-muted: hsl(215, 16%, 47%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-primary: 0 4px 14px 0 hsla(239, 84%, 67%, 0.39);
+  
+  /* Borders */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+body {
+  background-color: var(--bg-app);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Typography Overrides */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+}
+
+/* Layout - Navbar */
+.navbar {
+  padding: 1rem 2rem;
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Layout - Sidebar */
+.sidebar {
+  background-color: var(--surface);
+  border-right: 1px solid rgba(0,0,0,0.05);
+  min-height: calc(100vh - 72px);
+  padding: 1.5rem 1rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-link i {
+  width: 24px;
+  font-size: 1.1rem;
+  margin-right: 12px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: hsla(239, 84%, 67%, 0.08);
+  color: var(--primary);
+}
+
+.sidebar-link:hover i {
+  transform: scale(1.15);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  box-shadow: var(--shadow-primary);
+}
+
+.sidebar-link.active i {
+  color: white;
+}
+
+.sb-sidenav-menu-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  margin: 1.5rem 0 0.75rem 1.25rem;
+}
+
+/* Buttons */
+.btn {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: none;
+  color: white;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 hsla(239, 84%, 67%, 0.5);
+  color: white;
+}
+
+/* Overriding Bootstrap Card for backward compatibility with old views */
+.card {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+  transition: all 0.3s ease;
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Tables */
+.table-hover tbody tr {
+  transition: background-color 0.2s ease;
+}
+.table-hover tbody tr:hover {
+  background-color: hsla(239, 84%, 67%, 0.04);
+}
+
+/* Main Content Area */
+.main-content {
+  flex-grow: 1;
+  padding: 2.5rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utils */
+.text-primary {
+  color: var(--primary) !important;
+}
+.bg-primary {
+  background-color: var(--primary) !important;
+}

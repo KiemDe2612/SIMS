@@ -1,0 +1,132 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dashboard</h2>
+    <div class="text-muted">Welcome to Student Information Management System</div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Students</h6>
+                        <h2 class="mb-0 display-4 fw-bold">@ViewBag.TotalStudents</h2>
+                    </div>
+                    <i class="fas fa-user-graduate fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-primary bg-opacity-75">
+                <a class="text-white text-decoration-none stretched-link" href="/Students">View Details <i class="fas fa-angle-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Courses</h6>
+                        <h2 class="mb-0 display-4 fw-bold">@ViewBag.TotalCourses</h2>
+                    </div>
+                    <i class="fas fa-book fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-success bg-opacity-75">
+                <a class="text-white text-decoration-none stretched-link" href="/Courses">View Details <i class="fas fa-angle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Faculties</h6>
+                        <h2 class="mb-0 display-4 fw-bold">@ViewBag.TotalFaculties</h2>
+                    </div>
+                    <i class="fas fa-chalkboard-teacher fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between border-0 bg-warning bg-opacity-75">
+                <a class="text-dark text-decoration-none stretched-link" href="/Faculties">View Details <i class="fas fa-angle-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white pb-0 border-0">
+                <h5 class="card-title mb-0">Students by Department</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="departmentChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white pb-0 border-0">
+                <h5 class="card-title mb-0">Recent Enrollments</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No recent enrollments.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('departmentChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Software Engineering', 'Artificial Intelligence', 'Information Assurance'],
+                datasets: [{
+                    data: [45, 25, 30],
+                    backgroundColor: [
+                        '#2563EB',
+                        '#16A34A',
+                        '#F59E0B'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
+}

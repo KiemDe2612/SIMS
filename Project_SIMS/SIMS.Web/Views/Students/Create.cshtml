@@ -1,0 +1,75 @@
+@model SIMS.Application.DTOs.CreateStudentDto
+
+@{
+    ViewData["Title"] = "Thêm Sinh viên mới";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-primary"><i class="bi bi-person-plus"></i> @ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index">Quản lý Sinh viên</a></li>
+        <li class="breadcrumb-item active">Thêm mới</li>
+    </ol>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white pt-4 pb-0">
+            <h5 class="mb-0">Thông tin Sinh viên</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StudentId" class="form-label fw-bold">Mã Sinh viên</label>
+                        <input asp-for="StudentId" class="form-control" placeholder="VD: SE12345" />
+                        <span asp-validation-for="StudentId" class="text-danger"></span>
+                        <div class="form-text">Hệ thống sẽ tự động tạo tài khoản [MãSV]@@sims.com</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DepartmentId" class="form-label fw-bold">Khoa (Department)</label>
+                        <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                            <option value="">-- Chọn Khoa --</option>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FirstName" class="form-label fw-bold">Tên</label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LastName" class="form-label fw-bold">Họ & Tên đệm</label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DateOfBirth" class="form-label fw-bold">Ngày sinh</label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Address" class="form-label fw-bold">Địa chỉ</label>
+                        <input asp-for="Address" class="form-control" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> Lưu Sinh viên</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

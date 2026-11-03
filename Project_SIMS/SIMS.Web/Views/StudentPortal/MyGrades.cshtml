@@ -1,0 +1,122 @@
+@model IEnumerable<SIMS.Application.DTOs.MyGradeDto>
+
+@{
+    ViewData["Title"] = "Kết quả học tập";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-primary"><i class="bi bi-award"></i> @ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Xem điểm</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 bg-primary text-white shadow h-100 py-2 rounded-3">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Tổng tín chỉ tích lũy</div>
+                            <div class="h3 mb-0 font-weight-bold">
+                                @Model.Where(g => g.Grade >= 5.0).Sum(g => g.Credits)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-journal-text fa-2x text-white-50 opacity-50 fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 bg-success text-white shadow h-100 py-2 rounded-3">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Điểm Trung Bình (CPA)</div>
+                            <div class="h3 mb-0 font-weight-bold">
+                                @if (Model.Any(g => g.Grade.HasValue))
+                                {
+                                    @Math.Round(Model.Where(g => g.Grade.HasValue).Average(g => g.Grade.Value), 2)
+                                }
+                                else
+                                {
+                                    <span>N/A</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up fa-2x text-white-50 opacity-50 fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white pt-4 pb-0">
+            <h5 class="mb-0 text-dark"><i class="bi bi-list-columns-reverse"></i> Bảng điểm chi tiết</h5>
+        </div>
+        <div class="card-body">
+            @if(!Model.Any())
+            {
+                <div class="alert alert-info">Bạn chưa có dữ liệu học tập nào trong hệ thống.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Học kỳ</th>
+                                <th>Mã môn</th>
+                                <th>Tên môn học</th>
+                                <th>Số Tín chỉ</th>
+                                <th>Điểm tổng kết</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.SemesterName</td>
+                                    <td><span class="badge bg-secondary">@item.CourseCode</span></td>
+                                    <td class="fw-bold">@item.CourseTitle</td>
+                                    <td>@item.Credits</td>
+                                    <td>
+                                        @if(item.Grade.HasValue)
+                                        {
+                                            <span class="fw-bold text-primary">@item.Grade.Value</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Chưa có điểm</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if(!item.Grade.HasValue)
+                                        {
+                                            <span class="badge bg-warning text-dark">Đang học</span>
+                                        }
+                                        else if(item.Grade >= 5.0)
+                                        {
+                                            <span class="badge bg-success">Passed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Not Passed</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

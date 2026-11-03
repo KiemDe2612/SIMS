@@ -1,0 +1,75 @@
+@model SIMS.Application.DTOs.UpdateCourseDto
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Môn học";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-primary"><i class="bi bi-pencil-square"></i> @ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index">Quản lý Khóa học</a></li>
+        <li class="breadcrumb-item active">Chỉnh sửa</li>
+    </ol>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white pt-4 pb-0">
+            <h5 class="mb-0">Cập nhật thông tin Môn học</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label asp-for="Title" class="form-label fw-bold">Tên Môn học</label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Credits" class="form-label fw-bold">Số Tín chỉ</label>
+                        <input asp-for="Credits" type="number" class="form-control" />
+                        <span asp-validation-for="Credits" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-bold">Mô tả Môn học</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="DepartmentId" class="form-label fw-bold">Khoa (Department)</label>
+                        <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments"></select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="AssignedFacultyId" class="form-label fw-bold">Phân công Giảng viên</label>
+                        <select asp-for="AssignedFacultyId" class="form-select" asp-items="ViewBag.Faculties">
+                            <option value="">-- Chưa phân công --</option>
+                        </select>
+                        <span asp-validation-for="AssignedFacultyId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="PrerequisiteCourseId" class="form-label fw-bold">Môn học Tiên quyết</label>
+                        <select asp-for="PrerequisiteCourseId" class="form-select" asp-items="ViewBag.Prerequisites">
+                            <option value="">-- Không có --</option>
+                        </select>
+                        <span asp-validation-for="PrerequisiteCourseId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> Cập nhật</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,58 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SIMS.Application.DTOs;
+using SIMS.Application.Interfaces;
+using System.Security.Claims;
+
+namespace SIMS.Web.Controllers;
+
+[Authorize(Roles = "Faculty,Administrator")]
+public class FacultyController : Controller
+{
+    private readonly IFacultyService _facultyService;
+
+    public FacultyController(IFacultyService facultyService)
+    {
+        _facultyService = facultyService;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var courses = await _facultyService.GetAssignedCoursesAsync(userId);
+        return View(courses);
+    }
+
+    public async Task<IActionResult> CourseGrades(Guid id)
+    {
+        var course = await _facultyService.GetCourseByIdAsync(id);
+        if (course == null) return NotFound();
+
+        var grades = await _facultyService.GetCourseGradesAsync(id);
+        
+        ViewBag.CourseTitle = course.Title;
+        ViewBag.CourseCode = course.Code;
+        ViewBag.CourseId = course.Id;
+
+        return View(grades);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveGrades(Guid courseId, List<CourseGradeUpdateDto> updates)
+    {
+        if (ModelState.IsValid)
+        {
+            await _facultyService.UpdateGradesAsync(updates);
+            TempData["SuccessMessage"] = "Grades saved successfully!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Failed to save grades. Please check your inputs.";
+        }
+
+        return RedirectToAction(nameof(CourseGrades), new { id = courseId });
+    }
+}
