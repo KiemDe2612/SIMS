@@ -4,81 +4,102 @@
     ViewData["Title"] = "Quản lý Sinh viên";
 }
 
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
-        <h1 class="text-primary"><i class="bi bi-people-fill"></i> @ViewData["Title"]</h1>
-        <div>
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Xuất dữ liệu
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
-                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel (.xlsx)</a></li>
-                </ul>
-            </div>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Thêm Sinh viên mới
-            </a>
-        </div>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Tổng quan</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Sinh viên</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-people-fill" aria-hidden="true"></i> @ViewData["Title"]</h1>
+        <p class="page-subtitle">Danh sách sinh viên toàn trường và tài khoản đăng nhập tương ứng.</p>
     </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download" aria-hidden="true"></i> Xuất dữ liệu
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" asp-action="Export" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất file CSV</a></li>
+                <li><a class="dropdown-item" asp-action="Export" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất file Excel (.xlsx)</a></li>
+            </ul>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Thêm Sinh viên mới
+        </a>
+    </div>
+</div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="card">
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <label for="studentSearch" class="visually-hidden">Tìm sinh viên</label>
+            <input id="studentSearch" type="search" class="form-control" placeholder="Tìm theo mã SV, họ tên, email, khoa…"
+                   data-table-filter="#studentTable" data-count-target="#studentCount" autocomplete="off" />
         </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0">
-            <h5 class="mb-0">Danh sách Sinh viên toàn trường</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã SV</th>
-                            <th>Họ và Tên</th>
-                            <th>Email (Tài khoản)</th>
-                            <th>Khoa</th>
-                            <th>Ngày sinh</th>
-                            <th class="text-end">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td><span class="badge bg-secondary">@item.StudentId</span></td>
-                                <td class="fw-bold">@item.FirstName @item.LastName</td>
-                                <td><a href="mailto:@item.Email">@item.Email</a></td>
-                                <td>@item.DepartmentName</td>
-                                <td>@item.DateOfBirth.ToString("dd/MM/yyyy")</td>
-                                <td class="text-end">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i> Sửa
-                                    </a>
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sinh viên này và tài khoản đăng nhập của họ?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i> Xóa
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <span class="record-count" id="studentCount" aria-live="polite">@Model.Count() bản ghi</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-stack" id="studentTable">
+            <caption class="visually-hidden">Danh sách sinh viên toàn trường</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Mã SV</th>
+                    <th scope="col">Họ và tên</th>
+                    <th scope="col">Email (tài khoản)</th>
+                    <th scope="col">Khoa</th>
+                    <th scope="col">Ngày sinh</th>
+                    <th scope="col" class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="bi bi-people" aria-hidden="true"></i>
+                                <h3>Chưa có sinh viên nào</h3>
+                                <p>Bắt đầu bằng cách thêm sinh viên đầu tiên.</p>
+                                <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg" aria-hidden="true"></i> Thêm Sinh viên mới</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr data-filter-row>
+                        <td data-label="Mã SV"><span class="code-badge">@item.StudentId</span></td>
+                        <td data-label="Họ và tên" class="fw-semibold">@item.FirstName @item.LastName</td>
+                        <td data-label="Email"><a href="mailto:@item.Email" class="text-break">@item.Email</a></td>
+                        <td data-label="Khoa">@item.DepartmentName</td>
+                        <td data-label="Ngày sinh">@item.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                        <td class="text-end cell-actions">
+                            <div class="row-actions">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" aria-label="Sửa sinh viên @item.StudentId">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i> Sửa
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sinh viên này và tài khoản đăng nhập của họ?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Xóa sinh viên @item.StudentId">
+                                        <i class="bi bi-trash" aria-hidden="true"></i> Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                <tr data-no-result hidden>
+                    <td colspan="6" class="empty-state-cell">
+                        <div class="empty-state">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <h3>Không tìm thấy sinh viên phù hợp</h3>
+                            <p>Hãy thử từ khóa khác.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>

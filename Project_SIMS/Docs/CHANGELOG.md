@@ -122,3 +122,53 @@ Tài liệu ghi lại toàn bộ các nâng cấp kiến trúc, bổ sung Design
 - **Tài liệu hóa:**
   - Đồng bộ `SDD.md`, `README.md`, `APDP_analysis.md`, các sơ đồ PlantUML (`use_case.puml`, `class_diagram.puml`, `package_diagram.puml`) theo đúng kiến trúc và mã nguồn thực tế.
 
+
+---
+
+## 9. Cải thiện giao diện UI/UX (chỉ tầng View & CSS, không đổi logic)
+
+Báo cáo kiểm tra hiện trạng: `Docs/UI_AUDIT.md`. Không sửa Controllers, Application, Domain, Persistence, Tests, Migrations. Giữ nguyên tên action, route, tên field form, `[ValidateAntiForgeryToken]` (các form POST vẫn dùng tag helper `asp-action` nên token chống giả mạo tự sinh như cũ) và các thuộc tính `asp-*` đang dùng.
+
+### 9.1. Hệ thống thiết kế – `SIMS.Web/wwwroot/css/site.css` (viết lại)
+- Biến `:root` cho màu (`--sims-*`), khoảng cách (`--space-1..6`, thang 4px), bo góc (`--radius-*`), đổ bóng, kích thước bố cục. Một bảng màu dùng chung cho mọi trang.
+- **Ánh xạ sang biến Bootstrap** (`--bs-primary`, `--bs-success`, `--bs-*-bg-subtle`, `--bs-link-color`, focus ring…) và biến component của `.btn-*`, `.alert`, `.card`, `.table`, `.dropdown` → mọi thành phần Bootstrap dùng cùng bảng màu. *Lý do:* trước đây màu riêng và màu Bootstrap lẫn lộn (C4).
+- **Độ tương phản WCAG AA:** primary đổi từ #6366F1 (4.4:1) sang #4F46E5 (6.3:1); bỏ gradient tím (≈3:1); bỏ `btn-outline-info` (1.9:1). Các cặp chữ/nền chính đều ≥ 5:1 (đã đo: nút primary 6.29, success 5.02, muted 7.58, badge trạng thái ≥ 8).
+- **Font hệ thống** (`system-ui, Segoe UI, Roboto, Noto Sans…`) thay Google Font “Outfit” vốn thiếu bộ dấu tiếng Việt → chữ có dấu hiển thị đồng nhất, bớt 1 phụ thuộc CDN.
+- Bảng `.table-stack`: dưới 768px mỗi hàng thành một thẻ, nhãn cột lấy từ `data-label` → **không cuộn ngang ở 375px**. Hàng xen kẽ, header chữ hoa nhỏ, `code-badge` cho mã SV/mã môn, `status-badge` (nền nhạt, chữ đậm) cho trạng thái.
+- Kiểu validation: `.input-validation-error` viền đỏ, `.field-validation-error` có biểu tượng cảnh báo ngay dưới trường, `.validation-summary-errors` thành khung cảnh báo có tiêu đề “Vui lòng kiểm tra lại các thông tin sau:”.
+- `.form-section`, `.form-actions` (Hủy/Lưu tách vùng; trên mobile nút full-width, nút chính ở trên), `.page-header`, `.toolbar`, `.empty-state`, `.stat-card`, `.info-list`, skip link, `:focus-visible`, vùng bấm tối thiểu 40–44px, tôn trọng `prefers-reduced-motion`.
+
+### 9.2. Bố cục – `Views/Shared/_Layout.cshtml`, `_LoginPartial.cshtml`
+- **Menu trên điện thoại:** sidebar chuyển sang `offcanvas-md` của Bootstrap; nút ☰ mở menu ở < 768px. *Lý do:* trước đây sidebar `d-none d-md-block` nên mobile không có điều hướng (L1).
+- Menu theo vai trò giữ nguyên quyền hiển thị (Administrator: Sinh viên, Khóa học, Giảng viên; Faculty: Giảng viên; Student: Góc học tập). Trạng thái active tính phía server theo controller/action, có `aria-current="page"`; link dùng `asp-controller/asp-action` thay vì URL cứng. Bỏ script JS gán active.
+- **TempData tập trung trong layout**: `SuccessMessage` (xanh, `role=status`), `ErrorMessage` (đỏ, `role=alert`), hỗ trợ sẵn `WarningMessage`/`InfoMessage`; đã xóa khối alert lặp lại trong 5 view. *Lý do:* các trang như MyGrades/Faculty trước đây không hiển thị lỗi xuất file (N1).
+- Nạp Bootstrap CSS/JS từ `wwwroot/lib` (5.3.3) thay CDN; **bổ sung `~/lib/jquery`** vì `_ValidationScriptsPartial` cần jQuery — trước đây validation phía client không chạy (L6). Bỏ Font Awesome (đổi sang Bootstrap Icons). Bootstrap Icons vẫn dùng CDN cũ vì chưa có trong `wwwroot/lib` (không thêm CDN mới). Chart.js chỉ nạp ở trang Home.
+- `lang="vi"`, link “Bỏ qua điều hướng”, footer. `_LoginPartial`: bỏ `<ul>` lồng sai, tên người dùng rút gọn bằng dấu “…”, nhãn vai trò, nút Đăng xuất rõ ràng (form logout giữ nguyên thuộc tính).
+- Script nhỏ inline lọc bảng phía client (`data-table-filter`), bỏ dấu khi so khớp (“nguyen” khớp “Nguyễn”), chỉ ẩn/hiện hàng, không gửi request.
+
+### 9.3. Trang danh sách – `Students/Index`, `Courses/Index`, `Faculty/Index`
+- Tiêu đề trang + breadcrumb + mô tả; thanh công cụ gồm ô tìm kiếm (có nhãn ẩn cho trình đọc màn hình), bộ đếm bản ghi, dropdown xuất dữ liệu, nút thêm mới; tự xuống dòng trên mobile.
+- Courses: gộp 2 dropdown xuất thành một “Xuất dữ liệu” có nhóm (Danh sách môn học / Đăng ký học phần), cùng action `Export`/`ExportEnrollments` như cũ. Nút Sửa/Xóa có chữ và `aria-label`.
+- Bảng `table-striped`, `scope="col"`, `<caption>`; trạng thái rỗng và “không tìm thấy kết quả”. Dropdown trong hàng dùng Popper `strategy: fixed` để không bị `.table-responsive` cắt.
+- Nút xóa **giữ nguyên** POST và `confirm()` hiện có.
+- `Faculty/Index`: tiêu đề “Assigned Courses” → “Môn phụ trách”.
+
+### 9.4. Trang form – `Students/Create|Edit`, `Courses/Create|Edit`
+- Nhóm trường bằng `<fieldset>/<legend>`: “Tài khoản & Khoa” / “Thông tin cá nhân”; “Thông tin môn học” / “Khoa & Phân công”. Đặt “Họ & Tên đệm” trước “Tên”.
+- Dấu `*` cho trường bắt buộc, khớp với quy tắc validation thực tế của server (gồm cả trường bắt buộc ngầm định do kiểu `string` non-nullable: Địa chỉ, Mô tả; và Ngày sinh). Gợi ý “Từ 1 đến 10” cho số tín chỉ.
+- `asp-validation-summary` đổi `ModelOnly` → `All`. *Lý do:* ở Students/Create, lỗi `Email` (DTO yêu cầu nhưng form không có trường này) trước đây bị ẩn hoàn toàn nên người dùng không biết vì sao lưu thất bại (F1). Nguyên nhân gốc ở DTO — xem `UI_AUDIT.md` mục 9.
+- `novalidate` để dùng thông báo của jQuery Validation thay bong bóng mặc định của trình duyệt.
+
+### 9.5. Trang sinh viên & giảng viên
+- `StudentPortal/Registration`: bộ đếm “Đã đăng ký x / y lớp”, badge trạng thái, trạng thái rỗng; form Enroll/Drop giữ nguyên.
+- `StudentPortal/Profile`: avatar chữ viết tắt bằng CSS thay `ui-avatars.com` (không gửi tên sinh viên ra dịch vụ ngoài, S1); thông tin dùng `<dl>`.
+- `StudentPortal/MyGrades`: thẻ thống kê mới (bỏ class Bootstrap 4 không tồn tại), “Passed/Not Passed” → “Đạt/Không đạt”, điểm tô màu đạt/không đạt; công thức tín chỉ và CPA giữ nguyên.
+- `Faculty/CourseGrades`: mỗi ô điểm có `<label>` ẩn + `id`, gợi ý thang 0–10, nút “Quay lại” + “Lưu điểm số”; tên field `updates[i].EnrollmentId/Grade` và `courseId` giữ nguyên.
+
+### 9.6. Trang Home & trang lỗi
+- `Home/Index`: Việt hóa toàn bộ; thẻ thống kê chỉ là liên kết khi người dùng là Administrator (tránh dẫn Student/Faculty tới trang bị từ chối); bỏ link `/Faculties` (route không tồn tại). Biểu đồ dùng màu từ biến CSS, có khung chiều cao cố định, `aria-label` và nhãn “Dữ liệu minh họa” vì số liệu đang cố định trong view.
+- `Shared/Error`: thông điệp tiếng Việt thân thiện, nút Quay lại / Về trang Tổng quan, phần dành cho nhà phát triển thu gọn trong `<details>`. `Home/Privacy`: Việt hóa.
+
+### 9.7. Kiểm tra
+- `dotnet build SIMS.sln`: 0 cảnh báo, 0 lỗi. `dotnet test SIMS.sln`: 84/84 pass.
+- Render các trang theo 3 vai trò (dữ liệu seed của `DbInitializer`) ở 375px và 1280px: không trang nào cuộn ngang, không lỗi JavaScript; đã thử menu offcanvas, dropdown xuất dữ liệu, ô tìm kiếm và trạng thái lỗi validation của form.

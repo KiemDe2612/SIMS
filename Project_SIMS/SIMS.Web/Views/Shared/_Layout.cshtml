@@ -1,125 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+
+    bool IsActive(string controller, string? action = null) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+        && (action == null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase));
+
+    string NavClass(string controller, string? action = null) => IsActive(controller, action) ? "sidebar-link active" : "sidebar-link";
+    string? AriaCurrent(string controller, string? action = null) => IsActive(controller, action) ? "page" : null;
+
+    var isAdmin = User.IsInRole("Administrator");
+    var isFaculty = User.IsInRole("Faculty");
+    var isStudent = User.IsInRole("Student");
+
+    // Thông báo TempData: key -> (lớp alert, icon, role ARIA)
+    var flashTypes = new (string Key, string Css, string Icon, string Role)[]
+    {
+        ("SuccessMessage", "alert-success", "bi-check-circle-fill", "status"),
+        ("InfoMessage", "alert-info", "bi-info-circle-fill", "status"),
+        ("WarningMessage", "alert-warning", "bi-exclamation-triangle-fill", "alert"),
+        ("ErrorMessage", "alert-danger", "bi-x-octagon-fill", "alert")
+    };
+}
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SIMS Premium</title>
-    
-    <!-- Google Fonts: Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap & FontAwesome -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Custom Design System -->
+    <title>@ViewData["Title"] - SIMS</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons: chưa có trong wwwroot/lib nên giữ nguồn CDN đang dùng -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <!-- Glassmorphism Navbar -->
-    <header class="sticky-top">
-        <nav class="navbar navbar-expand-lg glass-panel py-3">
-            <div class="container-fluid px-4">
-                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                    <div class="bg-white rounded-circle p-2 shadow-sm me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-layer-group fs-5" style="color: var(--primary)"></i>
-                    </div>
-                    SIMS
-                </a>
-                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor" aria-controls="navbarColor" aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="fas fa-bars text-dark fs-4"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarColor">
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        <partial name="_LoginPartial" />
-                    </ul>
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+    <header class="app-header">
+        <button class="btn btn-outline-secondary btn-icon d-md-none" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Mở menu điều hướng">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <a class="app-brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="app-brand-logo" aria-hidden="true"><i class="bi bi-mortarboard-fill"></i></span>
+            SIMS
+        </a>
+        <partial name="_LoginPartial" />
+    </header>
+
+    <div class="app-shell">
+        <nav class="offcanvas-md offcanvas-start app-sidebar" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+            <div class="offcanvas-header border-bottom">
+                <h2 class="offcanvas-title h5 mb-0" id="appSidebarLabel">Menu</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Đóng menu"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div class="w-100">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="sidebar-user d-md-none">
+                            <div class="fw-semibold">@User.Identity.Name</div>
+                            @if (isAdmin) { <span class="role-badge mt-1"><i class="bi bi-shield-lock" aria-hidden="true"></i> Quản trị viên</span> }
+                            @if (isFaculty) { <span class="role-badge mt-1"><i class="bi bi-person-workspace" aria-hidden="true"></i> Giảng viên</span> }
+                            @if (isStudent) { <span class="role-badge mt-1"><i class="bi bi-mortarboard" aria-hidden="true"></i> Sinh viên</span> }
+                        </div>
+                    }
+
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="@NavClass("Home", "Index")" aria-current="@AriaCurrent("Home", "Index")">
+                        <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> Tổng quan
+                    </a>
+
+                    @if (isAdmin)
+                    {
+                        <div class="nav-section-title">Quản trị viên</div>
+                        <a asp-area="" asp-controller="Students" asp-action="Index" class="@NavClass("Students")" aria-current="@AriaCurrent("Students")">
+                            <i class="bi bi-people-fill" aria-hidden="true"></i> Quản lý Sinh viên
+                        </a>
+                        <a asp-area="" asp-controller="Courses" asp-action="Index" class="@NavClass("Courses")" aria-current="@AriaCurrent("Courses")">
+                            <i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i> Quản lý Khóa học
+                        </a>
+                    }
+
+                    @if (isStudent)
+                    {
+                        <div class="nav-section-title">Góc học tập</div>
+                        <a asp-area="" asp-controller="StudentPortal" asp-action="Profile" class="@NavClass("StudentPortal", "Profile")" aria-current="@AriaCurrent("StudentPortal", "Profile")">
+                            <i class="bi bi-person-badge-fill" aria-hidden="true"></i> Hồ sơ cá nhân
+                        </a>
+                        <a asp-area="" asp-controller="StudentPortal" asp-action="Registration" class="@NavClass("StudentPortal", "Registration")" aria-current="@AriaCurrent("StudentPortal", "Registration")">
+                            <i class="bi bi-plus-square-fill" aria-hidden="true"></i> Đăng ký môn học
+                        </a>
+                        <a asp-area="" asp-controller="StudentPortal" asp-action="MyGrades" class="@NavClass("StudentPortal", "MyGrades")" aria-current="@AriaCurrent("StudentPortal", "MyGrades")">
+                            <i class="bi bi-bar-chart-fill" aria-hidden="true"></i> Bảng điểm (CPA)
+                        </a>
+                    }
+
+                    @if (isFaculty || isAdmin)
+                    {
+                        <div class="nav-section-title">Giảng viên</div>
+                        <a asp-area="" asp-controller="Faculty" asp-action="Index" class="@NavClass("Faculty")" aria-current="@AriaCurrent("Faculty")">
+                            <i class="bi bi-easel-fill" aria-hidden="true"></i> Môn phụ trách &amp; Điểm
+                        </a>
+                    }
                 </div>
             </div>
         </nav>
-    </header>
 
-    <div class="container-fluid flex-grow-1">
-        <div class="row h-100">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 p-0 sidebar d-none d-md-block shadow-sm">
-                <div class="py-4 px-3">
-                    <a href="/" class="sidebar-link active">
-                        <i class="bi bi-grid-1x2-fill"></i> Tổng quan
-                    </a>
-                    
-                    @if (User.IsInRole("Administrator"))
+        <div class="app-main" id="main-content" tabindex="-1">
+            @{
+                var hasFlash = flashTypes.Any(f => TempData.Peek(f.Key) != null);
+            }
+            @if (hasFlash)
+            {
+                <div class="flash-stack">
+                    @foreach (var flash in flashTypes)
                     {
-                        <div class="sb-sidenav-menu-heading">Quản trị viên</div>
-                        <a href="/Students" class="sidebar-link">
-                            <i class="bi bi-people-fill"></i> Quản lý Sinh viên
-                        </a>
-                        <a href="/Courses" class="sidebar-link">
-                            <i class="bi bi-journal-bookmark-fill"></i> Quản lý Khóa học
-                        </a>
-                    }
-                    
-                    @if (User.IsInRole("Student"))
-                    {
-                        <div class="sb-sidenav-menu-heading">Góc Học Tập</div>
-                        <a href="/StudentPortal/Profile" class="sidebar-link">
-                            <i class="bi bi-person-badge-fill"></i> Hồ sơ cá nhân
-                        </a>
-                        <a href="/StudentPortal/Registration" class="sidebar-link">
-                            <i class="bi bi-plus-square-fill"></i> Đăng ký Môn học
-                        </a>
-                        <a href="/StudentPortal/MyGrades" class="sidebar-link">
-                            <i class="bi bi-bar-chart-fill"></i> Bảng điểm (CPA)
-                        </a>
-                    }
-                    
-                    @if (User.IsInRole("Faculty") || User.IsInRole("Administrator"))
-                    {
-                        <div class="sb-sidenav-menu-heading">Giảng viên</div>
-                        <a href="/Faculty" class="sidebar-link">
-                            <i class="bi bi-easel-fill"></i> Môn phụ trách & Điểm
-                        </a>
+                        var message = TempData[flash.Key];
+                        if (message != null)
+                        {
+                            <div class="alert @flash.Css alert-dismissible fade show" role="@flash.Role">
+                                <i class="bi @flash.Icon" aria-hidden="true"></i>
+                                <div class="alert-body">@message</div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng thông báo"></button>
+                            </div>
+                        }
                     }
                 </div>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content bg-app">
-                <main role="main">
-                    @RenderBody()
-                </main>
-            </div>
+            }
+            <main role="main">
+                @RenderBody()
+            </main>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Active Link Script -->
+    <footer class="app-footer">
+        &copy; @DateTime.Now.Year SIMS – Hệ thống quản lý thông tin sinh viên
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var currentUrl = window.location.pathname;
-            var links = document.querySelectorAll('.sidebar-link');
-            
-            links.forEach(function(link) {
-                // Remove existing active class (except Dashboard if we are strictly on /)
-                link.classList.remove('active');
-                
-                // Add active class if URL matches href
-                var href = link.getAttribute('href');
-                if(href === currentUrl || (href !== '/' && currentUrl.startsWith(href))) {
-                    link.classList.add('active');
-                }
-                if(currentUrl === '/' && href === '/') {
-                    link.classList.add('active');
-                }
+        // Lọc bảng phía client: <input data-table-filter="#tableId" data-count-target="#countId">
+        // Chỉ ẩn/hiện hàng đang hiển thị, không gửi request, không thay đổi dữ liệu.
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("[data-table-filter]").forEach(function (input) {
+                var table = document.querySelector(input.getAttribute("data-table-filter"));
+                if (!table) return;
+                var rows = Array.prototype.slice.call(table.querySelectorAll("tbody tr[data-filter-row]"));
+                var counter = document.querySelector(input.getAttribute("data-count-target"));
+                var noResult = table.querySelector("tbody tr[data-no-result]");
+                var normalize = function (s) {
+                    return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+                };
+                var apply = function () {
+                    var q = normalize(input.value.trim());
+                    var shown = 0;
+                    rows.forEach(function (row) {
+                        var match = !q || normalize(row.textContent).indexOf(q) !== -1;
+                        row.hidden = !match;
+                        if (match) shown++;
+                    });
+                    if (noResult) noResult.hidden = shown !== 0 || rows.length === 0;
+                    if (counter) counter.textContent = q ? (shown + " / " + rows.length + " kết quả") : (rows.length + " bản ghi");
+                };
+                input.addEventListener("input", apply);
+                apply();
             });
         });
     </script>
-    
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

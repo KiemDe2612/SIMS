@@ -4,77 +4,84 @@
     ViewData["Title"] = "Nhập điểm: " + ViewBag.CourseCode;
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary"><i class="bi bi-journal-check"></i> @ViewData["Title"]</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a asp-action="Index">Assigned Courses</a></li>
-        <li class="breadcrumb-item active">@ViewBag.CourseTitle</li>
-    </ol>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Danh sách sinh viên lớp @ViewBag.CourseCode</h5>
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Xuất bảng điểm
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@ViewBag.CourseId" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
-                    <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@ViewBag.CourseId" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel (.xlsx)</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <form asp-action="SaveGrades" method="post">
-                <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mã SV</th>
-                                <th>Họ tên</th>
-                                <th style="width: 200px;">Điểm tổng kết (Grade)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @{
-                                int index = 0;
-                            }
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-secondary">@item.StudentCode</span></td>
-                                    <td class="fw-bold">@item.StudentName</td>
-                                    <td>
-                                        <input type="hidden" name="updates[@index].EnrollmentId" value="@item.EnrollmentId" />
-                                        <input type="number" step="0.1" min="0" max="10" name="updates[@index].Grade" value="@item.Grade" class="form-control" placeholder="Nhập điểm..." />
-                                    </td>
-                                </tr>
-                                index++;
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Lưu điểm số</button>
-                </div>
-            </form>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Môn phụ trách</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@ViewBag.CourseTitle</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-journal-check" aria-hidden="true"></i> @ViewData["Title"]</h1>
+        <p class="page-subtitle">@ViewBag.CourseTitle · Nhập điểm tổng kết thang 10 (0 – 10, bước 0.1). Để trống nếu chưa có điểm.</p>
+    </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download" aria-hidden="true"></i> Xuất bảng điểm
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@ViewBag.CourseId" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất file CSV</a></li>
+                <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@ViewBag.CourseId" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất file Excel (.xlsx)</a></li>
+            </ul>
         </div>
     </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="bi bi-people text-primary" aria-hidden="true"></i> Danh sách sinh viên lớp @ViewBag.CourseCode</h2>
+        <span class="text-muted small">@Model.Count() sinh viên</span>
+    </div>
+    <form asp-action="SaveGrades" method="post">
+        <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-stack">
+                <caption class="visually-hidden">Bảng nhập điểm lớp @ViewBag.CourseCode</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Mã SV</th>
+                        <th scope="col">Họ tên</th>
+                        <th scope="col" style="width: 12rem;">Điểm tổng kết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="empty-state-cell">
+                                <div class="empty-state">
+                                    <i class="bi bi-person-x" aria-hidden="true"></i>
+                                    <h3>Chưa có sinh viên đăng ký</h3>
+                                    <p>Lớp này hiện chưa có sinh viên nào để nhập điểm.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @{
+                        int index = 0;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td data-label="Mã SV"><span class="code-badge">@item.StudentCode</span></td>
+                            <td data-label="Họ tên" class="fw-semibold">@item.StudentName</td>
+                            <td data-label="Điểm">
+                                <label for="grade-@index" class="visually-hidden">Điểm tổng kết của @item.StudentName</label>
+                                <input type="hidden" name="updates[@index].EnrollmentId" value="@item.EnrollmentId" />
+                                <input type="number" id="grade-@index" step="0.1" min="0" max="10" inputmode="decimal" name="updates[@index].Grade" value="@item.Grade" class="form-control grade-input" placeholder="0 – 10" />
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-body">
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Quay lại</a>
+                <button type="submit" class="btn btn-success"><i class="bi bi-save" aria-hidden="true"></i> Lưu điểm số</button>
+            </div>
+        </div>
+    </form>
 </div>

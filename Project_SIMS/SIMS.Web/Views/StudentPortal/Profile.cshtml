@@ -2,77 +2,68 @@
 
 @{
     ViewData["Title"] = "Hồ sơ cá nhân";
+
+    // Chữ cái viết tắt hiển thị trong avatar (thay cho dịch vụ avatar bên ngoài)
+    var nameParts = (Model.FullName ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = nameParts.Length switch
+    {
+        0 => "SV",
+        1 => nameParts[0].Substring(0, 1),
+        _ => nameParts[0].Substring(0, 1) + nameParts[^1].Substring(0, 1)
+    };
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary"><i class="bi bi-person-badge"></i> @ViewData["Title"]</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-        <li class="breadcrumb-item active">Hồ sơ cá nhân</li>
-    </ol>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Hồ sơ cá nhân</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-person-badge" aria-hidden="true"></i> @ViewData["Title"]</h1>
+    </div>
+</div>
 
-    <div class="row">
-        <div class="col-xl-4">
-            <div class="card mb-4 shadow-sm border-0">
-                <div class="card-body text-center">
-                    <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=random&size=128" alt="avatar" class="rounded-circle img-fluid mb-3" style="width: 150px;">
-                    <h5 class="my-3">@Model.FullName</h5>
-                    <p class="text-muted mb-1"><i class="bi bi-mortarboard-fill text-primary"></i> Sinh viên Đại học</p>
-                    <p class="text-muted mb-4"><span class="badge bg-primary px-3 py-2">Mã SV: @Model.StudentId</span></p>
-                </div>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100 mb-0">
+            <div class="card-body text-center">
+                <span class="avatar-initials" aria-hidden="true">@initials.ToUpper()</span>
+                <h2 class="h5 mb-1">@Model.FullName</h2>
+                <p class="text-muted mb-3"><i class="bi bi-mortarboard-fill text-primary" aria-hidden="true"></i> Sinh viên Đại học</p>
+                <span class="code-badge">Mã SV: @Model.StudentId</span>
             </div>
         </div>
-        <div class="col-xl-8">
-            <div class="card mb-4 shadow-sm border-0">
-                <div class="card-header bg-white pt-4 pb-0">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Thông tin chi tiết</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <p class="mb-0 fw-bold">Họ và tên</p>
-                        </div>
-                        <div class="col-sm-9">
-                            <p class="text-muted mb-0">@Model.FullName</p>
-                        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card h-100 mb-0">
+            <div class="card-header">
+                <h2 class="card-title"><i class="bi bi-info-circle text-primary" aria-hidden="true"></i> Thông tin chi tiết</h2>
+            </div>
+            <div class="card-body py-2">
+                <dl class="info-list">
+                    <div>
+                        <dt>Họ và tên</dt>
+                        <dd>@Model.FullName</dd>
                     </div>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <p class="mb-0 fw-bold">Email (Tài khoản)</p>
-                        </div>
-                        <div class="col-sm-9">
-                            <p class="text-muted mb-0">@Model.Email</p>
-                        </div>
+                    <div>
+                        <dt>Email (tài khoản)</dt>
+                        <dd>@Model.Email</dd>
                     </div>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <p class="mb-0 fw-bold">Khoa (Department)</p>
-                        </div>
-                        <div class="col-sm-9">
-                            <p class="text-muted mb-0">@Model.DepartmentName</p>
-                        </div>
+                    <div>
+                        <dt>Khoa</dt>
+                        <dd>@Model.DepartmentName</dd>
                     </div>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <p class="mb-0 fw-bold">Ngày sinh</p>
-                        </div>
-                        <div class="col-sm-9">
-                            <p class="text-muted mb-0">@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
-                        </div>
+                    <div>
+                        <dt>Ngày sinh</dt>
+                        <dd>@Model.DateOfBirth.ToString("dd/MM/yyyy")</dd>
                     </div>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <p class="mb-0 fw-bold">Địa chỉ</p>
-                        </div>
-                        <div class="col-sm-9">
-                            <p class="text-muted mb-0">@Model.Address</p>
-                        </div>
+                    <div>
+                        <dt>Địa chỉ</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.Address) ? "—" : Model.Address)</dd>
                     </div>
-                </div>
+                </dl>
             </div>
         </div>
     </div>

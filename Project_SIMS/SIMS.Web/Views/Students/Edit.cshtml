@@ -4,62 +4,67 @@
     ViewData["Title"] = "Chỉnh sửa thông tin Sinh viên";
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary"><i class="bi bi-person-lines-fill"></i> @ViewData["Title"]</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a asp-action="Index">Quản lý Sinh viên</a></li>
-        <li class="breadcrumb-item active">Chỉnh sửa</li>
-    </ol>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Sinh viên</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Chỉnh sửa</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> @ViewData["Title"]</h1>
+        <p class="page-subtitle">Các trường có dấu <span class="text-danger fw-bold">*</span> là bắt buộc.</p>
+    </div>
+</div>
 
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0">
-            <h5 class="mb-0">Cập nhật thông tin</h5>
-        </div>
-        <div class="card-body">
-            <form asp-action="Edit" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="Id" />
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post" novalidate>
+            <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+            <input type="hidden" asp-for="Id" />
 
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <label asp-for="DepartmentId" class="form-label fw-bold">Khoa (Department)</label>
+            <fieldset class="form-section">
+                <legend><i class="bi bi-building" aria-hidden="true"></i> Khoa</legend>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="DepartmentId" class="form-label">Khoa</label>
                         <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments"></select>
                         <span asp-validation-for="DepartmentId" class="text-danger"></span>
                     </div>
                 </div>
+            </fieldset>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="FirstName" class="form-label fw-bold">Tên</label>
-                        <input asp-for="FirstName" class="form-control" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="LastName" class="form-label fw-bold">Họ & Tên đệm</label>
-                        <input asp-for="LastName" class="form-control" />
+            <fieldset class="form-section">
+                <legend><i class="bi bi-person" aria-hidden="true"></i> Thông tin cá nhân</legend>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="LastName" class="form-label">Họ &amp; Tên đệm<span class="required" aria-hidden="true">*</span></label>
+                        <input asp-for="LastName" class="form-control" autocomplete="family-name" />
                         <span asp-validation-for="LastName" class="text-danger"></span>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="DateOfBirth" class="form-label fw-bold">Ngày sinh</label>
+                    <div class="col-md-6">
+                        <label asp-for="FirstName" class="form-label">Tên<span class="required" aria-hidden="true">*</span></label>
+                        <input asp-for="FirstName" class="form-control" autocomplete="given-name" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DateOfBirth" class="form-label">Ngày sinh<span class="required" aria-hidden="true">*</span></label>
                         <input asp-for="DateOfBirth" type="date" class="form-control" />
                         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Address" class="form-label fw-bold">Địa chỉ</label>
-                        <input asp-for="Address" class="form-control" />
+                    <div class="col-md-6">
+                        <label asp-for="Address" class="form-label">Địa chỉ<span class="required" aria-hidden="true">*</span></label>
+                        <input asp-for="Address" class="form-control" autocomplete="street-address" />
                         <span asp-validation-for="Address" class="text-danger"></span>
                     </div>
                 </div>
+            </fieldset>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> Cập nhật</button>
-                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Hủy bỏ</a>
-                </div>
-            </form>
-        </div>
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg" aria-hidden="true"></i> Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save" aria-hidden="true"></i> Cập nhật</button>
+            </div>
+        </form>
     </div>
 </div>
 
