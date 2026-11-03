@@ -3,25 +3,36 @@
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
 
-<ul class="navbar-nav">
+<div class="app-header-user">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item d-flex align-items-center">
-        <span class="nav-link text-dark fw-bold me-2">Xin chào, @UserManager.GetUserName(User)!</span>
-    </li>
-    <li class="nav-item">
-        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button type="submit" class="nav-link btn btn-link text-danger text-decoration-none">Đăng xuất</button>
-        </form>
-    </li>
+    <span class="d-none d-sm-inline-flex align-items-center gap-2 text-body">
+        <i class="bi bi-person-circle fs-5 text-muted" aria-hidden="true"></i>
+        <span class="user-name" title="@UserManager.GetUserName(User)">Xin chào, @UserManager.GetUserName(User)!</span>
+    </span>
+    @if (User.IsInRole("Administrator"))
+    {
+        <span class="role-badge d-none d-lg-inline-flex">Quản trị viên</span>
+    }
+    else if (User.IsInRole("Faculty"))
+    {
+        <span class="role-badge d-none d-lg-inline-flex">Giảng viên</span>
+    }
+    else if (User.IsInRole("Student"))
+    {
+        <span class="role-badge d-none d-lg-inline-flex">Sinh viên</span>
+    }
+    <form class="m-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+        <button type="submit" class="btn btn-sm btn-link-danger">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Đăng xuất
+        </button>
+    </form>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-primary" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link btn btn-primary text-white px-3 ms-2" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
-    </li>
+    <a class="btn btn-sm btn-outline-primary" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+    <a class="btn btn-sm btn-primary" asp-area="Identity" asp-page="/Account/Login">
+        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Đăng nhập
+    </a>
 }
-</ul>
+</div>

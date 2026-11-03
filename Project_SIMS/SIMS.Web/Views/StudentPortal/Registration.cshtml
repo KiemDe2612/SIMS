@@ -4,97 +4,103 @@
     ViewData["Title"] = "Đăng ký học phần";
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary"><i class="bi bi-card-checklist"></i> @ViewData["Title"]</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-        <li class="breadcrumb-item active">Đăng ký môn học</li>
-    </ol>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Đăng ký môn học</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-card-checklist" aria-hidden="true"></i> @ViewData["Title"]</h1>
+        <p class="page-subtitle">Lớp học đang mở đăng ký trong học kỳ hiện tại.</p>
+    </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download" aria-hidden="true"></i> Xuất môn đã đăng ký
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" asp-action="ExportMyEnrollments" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất file CSV</a></li>
+                <li><a class="dropdown-item" asp-action="ExportMyEnrollments" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất file Excel (.xlsx)</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-success"><i class="bi bi-list-task"></i> Lớp học đang mở đăng ký (Học kỳ hiện tại)</h5>
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Xuất môn đã đăng ký
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="ExportMyEnrollments" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
-                    <li><a class="dropdown-item" asp-action="ExportMyEnrollments" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel (.xlsx)</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã môn</th>
-                            <th>Tên môn học</th>
-                            <th>Tín chỉ</th>
-                            <th>Khoa (Department)</th>
-                            <th>Trạng thái đăng ký</th>
-                            <th class="text-end">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td><span class="badge bg-secondary">@item.Code</span></td>
-                                <td class="fw-bold">@item.Title</td>
-                                <td>@item.Credits</td>
-                                <td>@item.DepartmentName</td>
-                                <td>
-                                    @if(item.IsEnrolled)
-                                    {
-                                        <span class="badge bg-success"><i class="bi bi-check2"></i> Đã đăng ký</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-light text-dark border">Chưa đăng ký</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    @if(item.IsEnrolled)
-                                    {
-                                        <form asp-action="Drop" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đăng ký lớp này?');">
-                                            <input type="hidden" name="courseId" value="@item.CourseId" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-x-circle"></i> Hủy lớp
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <form asp-action="Enroll" method="post" class="d-inline">
-                                            <input type="hidden" name="courseId" value="@item.CourseId" />
-                                            <button type="submit" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-plus-circle"></i> Đăng ký
-                                            </button>
-                                        </form>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="bi bi-list-task text-primary" aria-hidden="true"></i> Lớp học đang mở đăng ký</h2>
+        <span class="text-muted small">Đã đăng ký: <strong class="text-body">@Model.Count(c => c.IsEnrolled)</strong> / @Model.Count() lớp</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-stack">
+            <caption class="visually-hidden">Lớp học đang mở đăng ký (học kỳ hiện tại)</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Mã môn</th>
+                    <th scope="col">Tên môn học</th>
+                    <th scope="col" class="text-center">Tín chỉ</th>
+                    <th scope="col">Khoa</th>
+                    <th scope="col">Trạng thái đăng ký</th>
+                    <th scope="col" class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="bi bi-calendar-x" aria-hidden="true"></i>
+                                <h3>Chưa có lớp mở đăng ký</h3>
+                                <p>Vui lòng quay lại khi nhà trường mở đợt đăng ký học phần.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td data-label="Mã môn"><span class="code-badge">@item.Code</span></td>
+                        <td data-label="Tên môn học" class="fw-semibold">@item.Title</td>
+                        <td data-label="Tín chỉ" class="text-center">@item.Credits</td>
+                        <td data-label="Khoa">@item.DepartmentName</td>
+                        <td data-label="Trạng thái">
+                            @if(item.IsEnrolled)
+                            {
+                                <span class="status-badge is-success"><i class="bi bi-check2" aria-hidden="true"></i> Đã đăng ký</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge is-neutral">Chưa đăng ký</span>
+                            }
+                        </td>
+                        <td class="text-end cell-actions">
+                            <div class="row-actions">
+                                @if(item.IsEnrolled)
+                                {
+                                    <form asp-action="Drop" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đăng ký lớp này?');">
+                                        <input type="hidden" name="courseId" value="@item.CourseId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Hủy đăng ký lớp @item.Code">
+                                            <i class="bi bi-x-circle" aria-hidden="true"></i> Hủy lớp
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Enroll" method="post" class="d-inline">
+                                        <input type="hidden" name="courseId" value="@item.CourseId" />
+                                        <button type="submit" class="btn btn-sm btn-primary" aria-label="Đăng ký lớp @item.Code">
+                                            <i class="bi bi-plus-circle" aria-hidden="true"></i> Đăng ký
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

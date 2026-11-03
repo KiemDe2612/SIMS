@@ -4,108 +4,125 @@
     ViewData["Title"] = "Quản lý Khóa học";
 }
 
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
-        <h1 class="text-primary"><i class="bi bi-book-fill"></i> @ViewData["Title"]</h1>
-        <div>
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Xuất môn học
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV danh sách môn</a></li>
-                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel danh sách môn</a></li>
-                </ul>
-            </div>
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-card-checklist"></i> Xuất DS Đăng ký
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV đăng ký học phần</a></li>
-                    <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel đăng ký học phần</a></li>
-                </ul>
-            </div>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Thêm Khóa học mới
-            </a>
-        </div>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Tổng quan</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Khóa học</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-book-fill" aria-hidden="true"></i> @ViewData["Title"]</h1>
+        <p class="page-subtitle">Danh sách môn học, khoa quản lý và tình trạng phân công giảng viên.</p>
     </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download" aria-hidden="true"></i> Xuất dữ liệu
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><h2 class="dropdown-header">Danh sách môn học</h2></li>
+                <li><a class="dropdown-item" asp-action="Export" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất CSV danh sách môn</a></li>
+                <li><a class="dropdown-item" asp-action="Export" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất Excel danh sách môn</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h2 class="dropdown-header">Danh sách đăng ký học phần</h2></li>
+                <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất CSV đăng ký học phần</a></li>
+                <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất Excel đăng ký học phần</a></li>
+            </ul>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Thêm Khóa học mới
+        </a>
+    </div>
+</div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="card">
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <label for="courseSearch" class="visually-hidden">Tìm môn học</label>
+            <input id="courseSearch" type="search" class="form-control" placeholder="Tìm theo mã môn, tên môn, khoa…"
+                   data-table-filter="#courseTable" data-count-target="#courseCount" autocomplete="off" />
         </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0">
-            <h5 class="mb-0">Danh sách các môn học (Courses)</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã môn</th>
-                            <th>Tên môn học</th>
-                            <th>Tín chỉ</th>
-                            <th>Khoa (Department)</th>
-                            <th>Giảng viên phụ trách</th>
-                            <th class="text-end">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td><span class="badge bg-secondary">@item.Code</span></td>
-                                <td class="fw-bold">@item.Title</td>
-                                <td>@item.Credits</td>
-                                <td>@item.DepartmentName</td>
-                                <td>
-                                    @if(item.AssignedFacultyName == "Assigned")
-                                    {
-                                        <span class="badge bg-success">Đã phân công</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning text-dark">Chưa phân công</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    <div class="btn-group btn-group-sm me-1">
-                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Xuất bảng điểm môn này">
-                                            <i class="bi bi-download"></i> Điểm
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV bảng điểm</a></li>
-                                            <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel bảng điểm</a></li>
-                                        </ul>
-                                    </div>
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1" title="Chỉnh sửa">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa môn học này?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <span class="record-count" id="courseCount" aria-live="polite">@Model.Count() bản ghi</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-stack" id="courseTable">
+            <caption class="visually-hidden">Danh sách các môn học</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Mã môn</th>
+                    <th scope="col">Tên môn học</th>
+                    <th scope="col" class="text-center">Tín chỉ</th>
+                    <th scope="col">Khoa</th>
+                    <th scope="col">Giảng viên phụ trách</th>
+                    <th scope="col" class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="bi bi-journal-x" aria-hidden="true"></i>
+                                <h3>Chưa có môn học nào</h3>
+                                <p>Thêm môn học để sinh viên có thể đăng ký.</p>
+                                <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg" aria-hidden="true"></i> Thêm Khóa học mới</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr data-filter-row>
+                        <td data-label="Mã môn"><span class="code-badge">@item.Code</span></td>
+                        <td data-label="Tên môn học" class="fw-semibold">@item.Title</td>
+                        <td data-label="Tín chỉ" class="text-center">@item.Credits</td>
+                        <td data-label="Khoa">@item.DepartmentName</td>
+                        <td data-label="Giảng viên">
+                            @if(item.AssignedFacultyName == "Assigned")
+                            {
+                                <span class="status-badge is-success"><i class="bi bi-check2" aria-hidden="true"></i> Đã phân công</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge is-warning"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Chưa phân công</span>
+                            }
+                        </td>
+                        <td class="text-end cell-actions">
+                            <div class="row-actions">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" aria-label="Xuất bảng điểm môn @item.Code">
+                                        <i class="bi bi-download" aria-hidden="true"></i> Điểm
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất CSV bảng điểm</a></li>
+                                        <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất Excel bảng điểm</a></li>
+                                    </ul>
+                                </div>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" aria-label="Sửa môn @item.Code">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i> Sửa
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa môn học này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Xóa môn @item.Code">
+                                        <i class="bi bi-trash" aria-hidden="true"></i> Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                <tr data-no-result hidden>
+                    <td colspan="6" class="empty-state-cell">
+                        <div class="empty-state">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <h3>Không tìm thấy môn học phù hợp</h3>
+                            <p>Hãy thử từ khóa khác.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>

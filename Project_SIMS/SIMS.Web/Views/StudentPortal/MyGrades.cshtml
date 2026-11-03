@@ -4,130 +4,126 @@
     ViewData["Title"] = "Kết quả học tập";
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary"><i class="bi bi-award"></i> @ViewData["Title"]</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-        <li class="breadcrumb-item active">Xem điểm</li>
-    </ol>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Xem điểm</li>
+            </ol>
+        </nav>
+        <h1 class="page-title"><i class="bi bi-award" aria-hidden="true"></i> @ViewData["Title"]</h1>
+    </div>
+    <div class="page-actions">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download" aria-hidden="true"></i> Xuất bảng điểm
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary" aria-hidden="true"></i> Xuất file CSV</a></li>
+                <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success" aria-hidden="true"></i> Xuất file Excel (.xlsx)</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="pdf"><i class="bi bi-file-earmark-pdf text-danger" aria-hidden="true"></i> Xuất bản in PDF (Chính thức)</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 bg-primary text-white shadow h-100 py-2 rounded-3">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Tổng tín chỉ tích lũy</div>
-                            <div class="h3 mb-0 font-weight-bold">
-                                @Model.Where(g => g.Grade >= 5.0).Sum(g => g.Credits)
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-journal-text fa-2x text-white-50 opacity-50 fs-1"></i>
-                        </div>
-                    </div>
-                </div>
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon" aria-hidden="true"><i class="bi bi-journal-text"></i></span>
+            <div>
+                <p class="stat-label">Tổng tín chỉ tích lũy</p>
+                <p class="stat-value">@Model.Where(g => g.Grade >= 5.0).Sum(g => g.Credits)</p>
             </div>
         </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 bg-success text-white shadow h-100 py-2 rounded-3">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Điểm Trung Bình (CPA)</div>
-                            <div class="h3 mb-0 font-weight-bold">
-                                @if (Model.Any(g => g.Grade.HasValue))
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card is-success">
+            <span class="stat-icon" aria-hidden="true"><i class="bi bi-graph-up"></i></span>
+            <div>
+                <p class="stat-label">Điểm trung bình (CPA)</p>
+                <p class="stat-value">
+                    @if (Model.Any(g => g.Grade.HasValue))
+                    {
+                        @Math.Round(Model.Where(g => g.Grade.HasValue).Average(g => g.Grade!.Value), 2)
+                    }
+                    else
+                    {
+                        <span>N/A</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="bi bi-list-columns-reverse text-primary" aria-hidden="true"></i> Bảng điểm chi tiết</h2>
+        <span class="text-muted small">Điểm đạt: từ 5.0 (thang 10)</span>
+    </div>
+    @if(!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-journal-x" aria-hidden="true"></i>
+            <h3>Chưa có dữ liệu học tập</h3>
+            <p>Bạn chưa có dữ liệu học tập nào trong hệ thống.</p>
+            <a asp-action="Registration" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle" aria-hidden="true"></i> Đăng ký môn học</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-stack">
+                <caption class="visually-hidden">Bảng điểm chi tiết theo học kỳ</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Học kỳ</th>
+                        <th scope="col">Mã môn</th>
+                        <th scope="col">Tên môn học</th>
+                        <th scope="col" class="text-center">Số tín chỉ</th>
+                        <th scope="col" class="text-center">Điểm tổng kết</th>
+                        <th scope="col">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td data-label="Học kỳ">@item.SemesterName</td>
+                            <td data-label="Mã môn"><span class="code-badge">@item.CourseCode</span></td>
+                            <td data-label="Tên môn học" class="fw-semibold">@item.CourseTitle</td>
+                            <td data-label="Số tín chỉ" class="text-center">@item.Credits</td>
+                            <td data-label="Điểm tổng kết" class="text-center">
+                                @if(item.Grade.HasValue)
                                 {
-                                    @Math.Round(Model.Where(g => g.Grade.HasValue).Average(g => g.Grade!.Value), 2)
+                                    <span class="fw-bold @(item.Grade >= 5.0 ? "text-success" : "text-danger")">@item.Grade.Value</span>
                                 }
                                 else
                                 {
-                                    <span>N/A</span>
+                                    <span class="text-muted fst-italic">Chưa có điểm</span>
                                 }
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-graph-up fa-2x text-white-50 opacity-50 fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </td>
+                            <td data-label="Trạng thái">
+                                @if(!item.Grade.HasValue)
+                                {
+                                    <span class="status-badge is-warning"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Đang học</span>
+                                }
+                                else if(item.Grade >= 5.0)
+                                {
+                                    <span class="status-badge is-success"><i class="bi bi-check-circle" aria-hidden="true"></i> Đạt</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge is-danger"><i class="bi bi-x-circle" aria-hidden="true"></i> Không đạt</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    </div>
-
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-dark"><i class="bi bi-list-columns-reverse"></i> Bảng điểm chi tiết</h5>
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Xuất bảng điểm
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
-                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel (.xlsx)</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="pdf"><i class="bi bi-file-earmark-pdf text-danger"></i> Xuất bản in PDF (Chính thức)</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            @if(!Model.Any())
-            {
-                <div class="alert alert-info">Bạn chưa có dữ liệu học tập nào trong hệ thống.</div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Học kỳ</th>
-                                <th>Mã môn</th>
-                                <th>Tên môn học</th>
-                                <th>Số Tín chỉ</th>
-                                <th>Điểm tổng kết</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@item.SemesterName</td>
-                                    <td><span class="badge bg-secondary">@item.CourseCode</span></td>
-                                    <td class="fw-bold">@item.CourseTitle</td>
-                                    <td>@item.Credits</td>
-                                    <td>
-                                        @if(item.Grade.HasValue)
-                                        {
-                                            <span class="fw-bold text-primary">@item.Grade.Value</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted fst-italic">Chưa có điểm</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if(!item.Grade.HasValue)
-                                        {
-                                            <span class="badge bg-warning text-dark">Đang học</span>
-                                        }
-                                        else if(item.Grade >= 5.0)
-                                        {
-                                            <span class="badge bg-success">Passed</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">Not Passed</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-    </div>
+    }
 </div>

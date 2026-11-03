@@ -1,25 +1,33 @@
 ﻿@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Đã xảy ra lỗi";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="card error-page">
+    <div class="card-body">
+        <i class="bi bi-exclamation-octagon error-icon" aria-hidden="true"></i>
+        <h1 class="h3 mt-2">Đã xảy ra lỗi</h1>
+        <p class="text-muted">Hệ thống gặp sự cố khi xử lý yêu cầu của bạn. Vui lòng thử lại sau hoặc liên hệ quản trị viên nếu lỗi tiếp diễn.</p>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        @if (Model?.ShowRequestId == true)
+        {
+            <p class="small">
+                <strong>Mã yêu cầu (Request ID):</strong> <code>@Model.RequestId</code>
+            </p>
+        }
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Quay lại</a>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary"><i class="bi bi-house" aria-hidden="true"></i> Về trang Tổng quan</a>
+        </div>
+    </div>
+</div>
+
+<details class="text-muted small mx-auto mt-3" style="max-width: 36rem;">
+    <summary>Thông tin dành cho nhà phát triển</summary>
+    <p class="mt-2">
+        Chuyển sang môi trường <strong>Development</strong> sẽ hiển thị chi tiết lỗi. Không bật môi trường Development cho ứng dụng
+        đã triển khai vì có thể làm lộ thông tin nhạy cảm. Để gỡ lỗi cục bộ, đặt biến môi trường
+        <strong>ASPNETCORE_ENVIRONMENT</strong> thành <strong>Development</strong> rồi khởi động lại ứng dụng.
     </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+</details>
