@@ -40,6 +40,15 @@
                                     <td class="fw-bold text-dark">@course.Title</td>
                                     <td>@course.Credits</td>
                                     <td class="text-end">
+                                        <div class="btn-group btn-group-sm me-1">
+                                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-download"></i> Xuất điểm
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@course.Id" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
+                                                <li><a class="dropdown-item" asp-action="ExportGrades" asp-route-id="@course.Id" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel</a></li>
+                                            </ul>
+                                        </div>
                                         <a asp-action="CourseGrades" asp-route-id="@course.Id" class="btn btn-sm btn-primary">
                                             <i class="bi bi-pencil-square"></i> Nhập điểm
                                         </a>

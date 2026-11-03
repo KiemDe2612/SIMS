@@ -2,18 +2,49 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 using System.Security.Claims;
 
 namespace SIMS.Web.Controllers;
 
-[Authorize(Roles = "Faculty,Administrator")]
+[Authorize(Roles = $"{AppRoles.Faculty},{AppRoles.Administrator}")]
 public class FacultyController : Controller
 {
     private readonly IFacultyService _facultyService;
+    private readonly IExportService _exportService;
 
-    public FacultyController(IFacultyService facultyService)
+    public FacultyController(IFacultyService facultyService, IExportService exportService)
     {
         _facultyService = facultyService;
+        _exportService = exportService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportGrades(Guid id, string format = "csv")
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            _ => ExportFormat.Csv
+        };
+
+        try
+        {
+            var result = await _exportService.ExportFacultyCourseGradesAsync(userId, id, expFormat);
+            return File(result.FileContents, result.ContentType, result.FileName);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return Forbid();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
 
     public async Task<IActionResult> Index()

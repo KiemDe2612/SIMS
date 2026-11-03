@@ -75,7 +75,18 @@ public class CourseService : ICourseService
         var course = await _unitOfWork.Repository<Course>().GetByIdAsync(id);
         if (course == null) return false;
 
-        _unitOfWork.Repository<Course>().Remove(course);
+        // Kiểm tra nếu đã có enrollment thì không cho xóa
+        var enrollments = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.CourseId == id);
+        if (enrollments.Any())
+        {
+            throw new InvalidOperationException("Không thể xóa môn học này vì đã có sinh viên đăng ký học phần.");
+        }
+
+        // Chuyển sang Soft Delete
+        course.IsDeleted = true;
+        course.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Repository<Course>().Update(course);
         var result = await _unitOfWork.CompleteAsync();
         return result > 0;
     }

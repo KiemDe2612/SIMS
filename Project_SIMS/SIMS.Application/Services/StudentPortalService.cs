@@ -1,5 +1,6 @@
 using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 using SIMS.Domain.Entities;
 using SIMS.Domain.Interfaces;
 
@@ -8,10 +9,12 @@ namespace SIMS.Application.Services;
 public class StudentPortalService : IStudentPortalService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEnrollmentSubject? _enrollmentSubject;
 
-    public StudentPortalService(IUnitOfWork unitOfWork)
+    public StudentPortalService(IUnitOfWork unitOfWork, IEnrollmentSubject? enrollmentSubject = null)
     {
         _unitOfWork = unitOfWork;
+        _enrollmentSubject = enrollmentSubject;
     }
 
     public async Task<Student?> GetStudentEntityByUserIdAsync(string userId)
@@ -26,12 +29,17 @@ public class StudentPortalService : IStudentPortalService
         if (student == null) return null;
 
         var department = await _unitOfWork.Repository<Department>().GetByIdAsync(student.DepartmentId);
+        var appUsers = await _unitOfWork.Repository<AppUser>().FindAsync(u => u.Id == userId);
+        var appUser = appUsers.FirstOrDefault();
+
+        string realName = appUser != null ? $"{appUser.FirstName} {appUser.LastName}".Trim() : $"Sinh viên {student.StudentId}";
+        string realEmail = appUser?.Email ?? $"{student.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}";
 
         return new MyProfileDto
         {
             StudentId = student.StudentId,
-            FullName = "Name is mapped in Controller",
-            Email = "Email is mapped in Controller",
+            FullName = realName,
+            Email = realEmail,
             DepartmentName = department?.Name ?? "N/A",
             DateOfBirth = student.DateOfBirth,
             Address = student.Address
@@ -77,10 +85,40 @@ public class StudentPortalService : IStudentPortalService
         var activeSemester = semesters.FirstOrDefault();
         if (activeSemester == null) return false;
 
+        var course = await _unitOfWork.Repository<Course>().GetByIdAsync(courseId);
+        if (course == null) return false;
+
+        // 1. Kiểm tra đã đăng ký môn này trong kỳ chưa
         var existingEnrollment = await _unitOfWork.Repository<Enrollment>()
             .FindAsync(e => e.StudentId == student.Id && e.CourseId == courseId && e.SemesterId == activeSemester.Id);
             
         if (existingEnrollment.Any()) return false; // Already enrolled
+
+        // 2. SRS: Kiểm tra môn tiên quyết (Prerequisite Course Validation)
+        if (course.PrerequisiteCourseId.HasValue)
+        {
+            var passedPrereq = await _unitOfWork.Repository<Enrollment>().FindAsync(
+                e => e.StudentId == student.Id 
+                     && e.CourseId == course.PrerequisiteCourseId.Value 
+                     && e.Grade.HasValue 
+                     && e.Grade >= 5.0);
+
+            if (!passedPrereq.Any())
+            {
+                return false; // Chưa hoàn thành môn tiên quyết với điểm >= 5.0
+            }
+        }
+
+        // 3. SRS: Giới hạn tín chỉ tối đa mỗi học kỳ (Max Credits per semester from AppConstants)
+        var currentEnrollments = (await _unitOfWork.Repository<Enrollment>().FindAsync(
+            e => e.StudentId == student.Id && e.SemesterId == activeSemester.Id)).ToList();
+        var allCourses = (await _unitOfWork.Repository<Course>().GetAllAsync()).ToDictionary(c => c.Id, c => c);
+        int currentCredits = currentEnrollments.Sum(e => allCourses.TryGetValue(e.CourseId, out var c) ? c.Credits : 0);
+
+        if (currentCredits + course.Credits > AppConstants.MaxCreditsPerSemester)
+        {
+            return false; // Vượt quá giới hạn tín chỉ cho phép trong học kỳ
+        }
 
         var enrollment = new Enrollment
         {
@@ -91,7 +129,23 @@ public class StudentPortalService : IStudentPortalService
         };
 
         await _unitOfWork.Repository<Enrollment>().AddAsync(enrollment);
-        return await _unitOfWork.CompleteAsync() > 0;
+        var success = await _unitOfWork.CompleteAsync() > 0;
+
+        // 4. Observer Pattern: Phát sự kiện khi đăng ký thành công để ghi AuditLog và gửi thông báo
+        if (success && _enrollmentSubject != null)
+        {
+            await _enrollmentSubject.NotifyAsync(new EnrollmentCreatedEvent(
+                enrollment.Id,
+                student.Id,
+                student.StudentId,
+                course.Id,
+                course.Code,
+                activeSemester.Id,
+                enrollment.EnrollmentDate
+            ));
+        }
+
+        return success;
     }
 
     public async Task<bool> DropCourseAsync(string userId, Guid courseId)

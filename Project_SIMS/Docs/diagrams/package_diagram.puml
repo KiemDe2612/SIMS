@@ -1,0 +1,93 @@
+@startuml package_diagram
+skinparam packageStyle rectangle
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Sơ đồ Gói & Quan hệ Phụ thuộc Thực tế (Package Diagram - SIMS Solution)
+
+package "SIMS.Domain" as Domain #F8F9FA {
+    note as N_Domain
+        <b>Lõi nghiệp vụ (Core)</b>
+        - Entities (Student, Course, ...)
+        - IGenericRepository<T>
+        - IUnitOfWork
+        - AppConstants, AppRoles
+        <i>(Không phụ thuộc project nào)</i>
+    end note
+}
+
+package "SIMS.Application" as Application #E8F4F8 {
+    note as N_App
+        <b>Tầng Ứng dụng & Điều phối</b>
+        - Services (Student, Course, Faculty, Portal)
+        - Strategies (GPA / CPA calculation)
+        - Observers (Enrollment event & handlers)
+        - Factory (IUserFactory)
+        - DTOs, IExportService
+    end note
+}
+
+package "SIMS.Persistence" as Persistence #FFF8E7 {
+    note as N_Persist
+        <b>Tầng Lưu trữ Cơ sở Dữ liệu</b>
+        - ApplicationDbContext (EF Core)
+        - GenericRepository<T>, UnitOfWork
+        - DbInitializer (Seed data)
+        - Query Filters (Soft delete)
+    end note
+}
+
+package "SIMS.Infrastructure" as Infrastructure #F3E8FD {
+    note as N_Infra
+        <b>Tầng Hạ tầng Kỹ thuật</b>
+        - ExportService (ClosedXML, CSV, QuestPDF)
+        - CsvExporter, ExcelExporter, PdfExporter
+        - CachingStudentRepository (Decorator)
+    end note
+}
+
+package "SIMS.Web" as Web #FFF0F5 {
+    note as N_Web
+        <b>Giao diện & Điểm khởi tạo (Composition Root)</b>
+        - ASP.NET Core MVC (Controllers, Views)
+        - Program.cs (DI Container Configuration)
+        - Authentication & Authorization
+    end note
+}
+
+package "SIMS.Tests" as Tests #EAF7EA {
+    note as N_Tests
+        <b>Tầng Kiểm thử (Automated Tests)</b>
+        - Unit Tests (xUnit, Moq, FluentAssertions)
+        - Integration Tests (SQLite In-Memory)
+        - Coverage Collector (Coverlet)
+    end note
+}
+
+' Actual dependencies defined in .csproj files:
+Application ..> Domain : <<references>>
+
+Persistence ..> Application : <<references>>
+Infrastructure ..> Application : <<references>>
+
+Web ..> Application : <<references>>
+Web ..> Infrastructure : <<references>>
+Web ..> Persistence : <<references>>
+
+Tests ..> Domain : <<references>>
+Tests ..> Application : <<references>>
+Tests ..> Infrastructure : <<references>>
+Tests ..> Persistence : <<references>>
+
+note bottom of Web
+  <b>Ghi chú thực tế (.csproj):</b>
+  - SIMS.Web không tham chiếu trực tiếp SIMS.Domain,
+    nhận Domain gián tiếp (transitive) qua Application.
+  - SIMS.Persistence và SIMS.Infrastructure độc lập với nhau,
+    cùng phụ thuộc vào SIMS.Application theo nguyên lý Clean Architecture.
+end note
+
+@enduml
+

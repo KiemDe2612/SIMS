@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using SIMS.Domain.Entities;
 using SIMS.Domain.Interfaces;
 using SIMS.Persistence.Data;
 using SIMS.Persistence.Repositories;
 using SIMS.Application.Interfaces;
 using SIMS.Application.Services;
+using SIMS.Application.Services.Observers;
+using SIMS.Application.Services.Strategies;
+using SIMS.Infrastructure.Repositories;
+using SIMS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +24,18 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddDefaultUI()
     .AddDefaultTokenProviders();
 
+// Memory Cache
+builder.Services.AddMemoryCache();
+
 // Add DI for Repositories and Unit of Work
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<GenericRepository<Student>>();
+builder.Services.AddScoped<IGenericRepository<Student>>(sp =>
+{
+    var inner = sp.GetRequiredService<GenericRepository<Student>>();
+    var cache = sp.GetRequiredService<IMemoryCache>();
+    return new CachingStudentRepository(inner, cache);
+});
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add DI for Services
@@ -28,6 +43,15 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IFacultyService, FacultyService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentPortalService, StudentPortalService>();
+builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<IGpaCalculationStrategy, TenPointStrategy>();
+builder.Services.AddScoped<ITranscriptService, TranscriptService>();
+builder.Services.AddScoped<IUserFactory, UserFactory>();
+
+// Add Observer Pattern for Enrollments
+builder.Services.AddScoped<IEnrollmentObserver, AuditLogEnrollmentObserver>();
+builder.Services.AddScoped<IEnrollmentObserver, NotificationEnrollmentObserver>();
+builder.Services.AddScoped<IEnrollmentSubject, EnrollmentSubject>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

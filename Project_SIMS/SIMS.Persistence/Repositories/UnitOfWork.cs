@@ -1,4 +1,5 @@
 using System.Collections;
+using Microsoft.Extensions.DependencyInjection;
 using SIMS.Domain.Interfaces;
 using SIMS.Persistence.Data;
 
@@ -7,11 +8,13 @@ namespace SIMS.Persistence.Repositories;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
+    private readonly IServiceProvider? _serviceProvider;
     private Hashtable? _repositories;
 
-    public UnitOfWork(ApplicationDbContext context)
+    public UnitOfWork(ApplicationDbContext context, IServiceProvider? serviceProvider = null)
     {
         _context = context;
+        _serviceProvider = serviceProvider;
     }
 
     public IGenericRepository<T> Repository<T>() where T : class
@@ -22,6 +25,13 @@ public class UnitOfWork : IUnitOfWork
 
         if (!_repositories.ContainsKey(type))
         {
+            var customRepo = _serviceProvider?.GetService<IGenericRepository<T>>();
+            if (customRepo != null)
+            {
+                _repositories.Add(type, customRepo);
+                return customRepo;
+            }
+
             var repositoryType = typeof(GenericRepository<>);
             var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context);
 

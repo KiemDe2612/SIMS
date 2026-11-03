@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="FluentAssertions" Version="8.10.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -23,6 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\SIMS.Application\SIMS.Application.csproj" />
     <ProjectReference Include="..\SIMS.Domain\SIMS.Domain.csproj" />
+    <ProjectReference Include="..\SIMS.Infrastructure\SIMS.Infrastructure.csproj" />
+    <ProjectReference Include="..\SIMS.Persistence\SIMS.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

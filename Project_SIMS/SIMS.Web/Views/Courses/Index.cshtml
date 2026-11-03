@@ -7,15 +7,42 @@
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
         <h1 class="text-primary"><i class="bi bi-book-fill"></i> @ViewData["Title"]</h1>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Thêm Khóa học mới
-        </a>
+        <div>
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download"></i> Xuất môn học
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV danh sách môn</a></li>
+                    <li><a class="dropdown-item" asp-action="Export" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel danh sách môn</a></li>
+                </ul>
+            </div>
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-card-checklist"></i> Xuất DS Đăng ký
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV đăng ký học phần</a></li>
+                    <li><a class="dropdown-item" asp-action="ExportEnrollments" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel đăng ký học phần</a></li>
+                </ul>
+            </div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Thêm Khóa học mới
+            </a>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -56,7 +83,16 @@
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
+                                    <div class="btn-group btn-group-sm me-1">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Xuất bảng điểm môn này">
+                                            <i class="bi bi-download"></i> Điểm
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV bảng điểm</a></li>
+                                            <li><a class="dropdown-item" asp-action="ExportCourseGrades" asp-route-id="@item.Id" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel bảng điểm</a></li>
+                                        </ul>
+                                    </div>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1" title="Chỉnh sửa">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa môn học này?');">

@@ -1,0 +1,39 @@
+name: SIMS .NET Test & Coverage
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Build & Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore Project_SIMS/SIMS.sln
+
+    - name: Build solution
+      run: dotnet build Project_SIMS/SIMS.sln --no-restore --configuration Release
+
+    - name: Run Tests with Code Coverage
+      run: dotnet test Project_SIMS/SIMS.Tests/SIMS.Tests.csproj --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+
+    - name: Upload Test Results Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          Project_SIMS/SIMS.Tests/TestResults/
+

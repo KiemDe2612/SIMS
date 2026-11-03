@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SIMS.Domain.Constants;
 using SIMS.Domain.Entities;
 
 namespace SIMS.Persistence.Data;
@@ -16,7 +17,7 @@ public static class DbInitializer
         // Ensure database is created
         await context.Database.MigrateAsync();
 
-        string[] roleNames = { "Administrator", "Faculty", "Student" };
+        string[] roleNames = { AppRoles.Administrator, AppRoles.Faculty, AppRoles.Student };
         foreach (var roleName in roleNames)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
@@ -26,13 +27,13 @@ public static class DbInitializer
         }
 
         // 1. Create Admin
-        var adminEmail = "admin@sims.com";
+        var adminEmail = $"admin{AppConstants.DefaultEmailDomain}";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser == null)
         {
             adminUser = new AppUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true, FirstName = "System", LastName = "Admin" };
             await userManager.CreateAsync(adminUser, "Admin@123");
-            await userManager.AddToRoleAsync(adminUser, "Administrator");
+            await userManager.AddToRoleAsync(adminUser, AppRoles.Administrator);
         }
 
         // 2. Create Departments

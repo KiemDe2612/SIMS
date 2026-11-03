@@ -3,17 +3,62 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 
 namespace SIMS.Web.Controllers;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = AppRoles.Administrator)]
 public class CoursesController : Controller
 {
     private readonly ICourseService _courseService;
+    private readonly IExportService _exportService;
 
-    public CoursesController(ICourseService courseService)
+    public CoursesController(ICourseService courseService, IExportService exportService)
     {
         _courseService = courseService;
+        _exportService = exportService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Export(string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            _ => ExportFormat.Csv
+        };
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        var result = await _exportService.ExportCoursesAsync(userId, expFormat);
+        return File(result.FileContents, result.ContentType, result.FileName);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportCourseGrades(Guid id, string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            _ => ExportFormat.Csv
+        };
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        var result = await _exportService.ExportCourseGradesAsync(userId, id, expFormat);
+        return File(result.FileContents, result.ContentType, result.FileName);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportEnrollments(Guid? semesterId, string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            _ => ExportFormat.Csv
+        };
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        var result = await _exportService.ExportEnrollmentsBySemesterAsync(userId, semesterId, expFormat);
+        return File(result.FileContents, result.ContentType, result.FileName);
     }
 
     public async Task<IActionResult> Index()
@@ -99,8 +144,15 @@ public class CoursesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _courseService.DeleteCourseAsync(id);
-        TempData["SuccessMessage"] = "Course deleted successfully!";
+        try
+        {
+            await _courseService.DeleteCourseAsync(id);
+            TempData["SuccessMessage"] = "Môn học đã được xóa (Soft Delete) thành công!";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
         return RedirectToAction(nameof(Index));
     }
 }

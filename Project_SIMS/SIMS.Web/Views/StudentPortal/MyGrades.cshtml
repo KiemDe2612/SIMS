@@ -39,7 +39,7 @@
                             <div class="h3 mb-0 font-weight-bold">
                                 @if (Model.Any(g => g.Grade.HasValue))
                                 {
-                                    @Math.Round(Model.Where(g => g.Grade.HasValue).Average(g => g.Grade.Value), 2)
+                                    @Math.Round(Model.Where(g => g.Grade.HasValue).Average(g => g.Grade!.Value), 2)
                                 }
                                 else
                                 {
@@ -57,8 +57,19 @@
     </div>
 
     <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white pt-4 pb-0">
+        <div class="card-header bg-white pt-4 pb-0 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 text-dark"><i class="bi bi-list-columns-reverse"></i> Bảng điểm chi tiết</h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download"></i> Xuất bảng điểm
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất file CSV</a></li>
+                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất file Excel (.xlsx)</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" asp-action="ExportMyGrades" asp-route-format="pdf"><i class="bi bi-file-earmark-pdf text-danger"></i> Xuất bản in PDF (Chính thức)</a></li>
+                </ul>
+            </div>
         </div>
         <div class="card-body">
             @if(!Model.Any())

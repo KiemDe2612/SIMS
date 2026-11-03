@@ -1,22 +1,69 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 using SIMS.Domain.Entities;
 using System.Security.Claims;
 
 namespace SIMS.Web.Controllers;
 
-[Authorize(Roles = "Student")]
+[Authorize(Roles = AppRoles.Student)]
 public class StudentPortalController : Controller
 {
     private readonly IStudentPortalService _studentPortalService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IExportService _exportService;
 
-    public StudentPortalController(IStudentPortalService studentPortalService, UserManager<AppUser> userManager)
+    public StudentPortalController(IStudentPortalService studentPortalService, UserManager<AppUser> userManager, IExportService exportService)
     {
         _studentPortalService = studentPortalService;
         _userManager = userManager;
+        _exportService = exportService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportMyGrades(string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            "pdf" => ExportFormat.Pdf,
+            _ => ExportFormat.Csv
+        };
+
+        try
+        {
+            var result = await _exportService.ExportStudentGradesAsync(GetUserId(), expFormat);
+            return File(result.FileContents, result.ContentType, result.FileName);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return Forbid();
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportMyEnrollments(string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            _ => ExportFormat.Csv
+        };
+
+        try
+        {
+            var result = await _exportService.ExportStudentEnrollmentsAsync(GetUserId(), expFormat);
+            return File(result.FileContents, result.ContentType, result.FileName);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return Forbid();
+        }
     }
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";

@@ -2,34 +2,63 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 using SIMS.Domain.Entities;
 
 namespace SIMS.Web.Controllers;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = AppRoles.Administrator)]
 public class StudentsController : Controller
 {
     private readonly IStudentService _studentService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IExportService _exportService;
+    private readonly IUserFactory _userFactory;
 
-    public StudentsController(IStudentService studentService, UserManager<AppUser> userManager)
+    public StudentsController(
+        IStudentService studentService, 
+        UserManager<AppUser> userManager, 
+        IExportService exportService,
+        IUserFactory userFactory)
     {
         _studentService = studentService;
         _userManager = userManager;
+        _exportService = exportService;
+        _userFactory = userFactory;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Export(string format = "csv")
+    {
+        var expFormat = format?.ToLower() switch
+        {
+            "excel" or "xlsx" => ExportFormat.Excel,
+            "pdf" => ExportFormat.Pdf,
+            _ => ExportFormat.Csv
+        };
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        var result = await _exportService.ExportStudentsAsync(userId, expFormat);
+        return File(result.FileContents, result.ContentType, result.FileName);
     }
 
     public async Task<IActionResult> Index()
     {
-        var students = await _studentService.GetAllStudentsAsync();
-        // Since Generic Repo doesn't include AppUser, let's map the names here for UI
-        foreach(var student in students)
+        var students = (await _studentService.GetAllStudentsAsync()).ToList();
+        var emails = students.Select(s => $"{s.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}").ToHashSet();
+
+        // Tối ưu loại bỏ N+1 query: lấy toàn bộ AppUser trong 1 lần truy vấn SQL duy nhất
+        var users = await _userManager.Users
+            .Where(u => emails.Contains(u.Email!.ToLower()))
+            .ToDictionaryAsync(u => u.Email!.ToLower());
+
+        foreach (var student in students)
         {
-            // Note: In a real enterprise app, we'd use a raw SQL query or custom repo method with Include to avoid N+1 queries.
-            // But this works for our small demo.
-            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
-            if (appUser != null)
+            string email = $"{student.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}";
+            if (users.TryGetValue(email, out var appUser))
             {
                 student.FirstName = appUser.FirstName;
                 student.LastName = appUser.LastName;
@@ -51,36 +80,32 @@ public class StudentsController : Controller
     {
         if (ModelState.IsValid)
         {
-            // 1. Create Identity User
-            var email = $"{model.StudentId.ToLower()}@sims.com";
-            var newUser = new AppUser
+            // Delegate creation to UserFactory (Factory Method pattern)
+            var userReq = new CreateUserRequest
             {
-                UserName = email,
-                Email = email,
-                EmailConfirmed = true,
+                Identifier = model.StudentId,
                 FirstName = model.FirstName,
-                LastName = model.LastName
+                LastName = model.LastName,
+                Email = model.Email,
+                Role = AppRoles.Student
             };
 
-            var result = await _userManager.CreateAsync(newUser, $"{model.StudentId}@123");
-            if (result.Succeeded)
+            var (result, newUser) = await _userFactory.CreateUserWithRoleAsync(userReq);
+            if (result.Succeeded && newUser != null)
             {
-                await _userManager.AddToRoleAsync(newUser, "Student");
-
-                // 2. Create Student Entity
                 model.UserId = newUser.Id;
                 await _studentService.CreateStudentAsync(model);
 
                 TempData["SuccessMessage"] = "Student created successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            
-            foreach(var error in result.Errors)
+
+            foreach (var error in result.Errors)
             {
                 ModelState.AddModelError("", error.Description);
             }
         }
-        
+
         ViewBag.Departments = new SelectList(await _studentService.GetDepartmentsAsync(), "Id", "Name", model.DepartmentId);
         return View(model);
     }
@@ -91,7 +116,7 @@ public class StudentsController : Controller
         if (student == null) return NotFound();
 
         // Get AppUser for name
-        var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+        var appUser = _userManager.Users.FirstOrDefault(u => u.Email == $"{student.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}");
         
         var model = new UpdateStudentDto
         {
@@ -121,7 +146,7 @@ public class StudentsController : Controller
             var student = await _studentService.GetStudentByIdAsync(id);
             if (student != null)
             {
-                var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+                var appUser = _userManager.Users.FirstOrDefault(u => u.Email == $"{student.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}");
                 if (appUser != null)
                 {
                     appUser.FirstName = model.FirstName;
@@ -142,19 +167,28 @@ public class StudentsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var student = await _studentService.GetStudentByIdAsync(id);
-        if (student != null)
+        try
         {
-            // Delete Identity user
-            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
-            if (appUser != null)
+            var student = await _studentService.GetStudentByIdAsync(id);
+            if (student != null)
             {
-                await _userManager.DeleteAsync(appUser);
-            }
+                // Soft delete student record (throws InvalidOperationException if enrolled)
+                await _studentService.DeleteStudentAsync(id);
 
-            // Delete Student
-            await _studentService.DeleteStudentAsync(id);
-            TempData["SuccessMessage"] = "Student deleted successfully!";
+                // Deactivate Identity user
+                var appUser = _userManager.Users.FirstOrDefault(u => u.Email == $"{student.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}");
+                if (appUser != null)
+                {
+                    appUser.IsActive = false;
+                    await _userManager.UpdateAsync(appUser);
+                }
+
+                TempData["SuccessMessage"] = "Sinh viên đã được xóa (Soft Delete) thành công!";
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
         }
         return RedirectToAction(nameof(Index));
     }

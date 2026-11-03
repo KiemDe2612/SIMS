@@ -32,20 +32,26 @@ public class FacultyService : IFacultyService
 
     public async Task<IEnumerable<CourseGradeDto>> GetCourseGradesAsync(Guid courseId)
     {
-        var enrollments = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.CourseId == courseId);
-        var result = new List<CourseGradeDto>();
+        var enrollments = (await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.CourseId == courseId)).ToList();
+        var studentIds = enrollments.Select(e => e.StudentId).ToHashSet();
+        var allStudents = (await _unitOfWork.Repository<Student>().GetAllAsync()).Where(s => studentIds.Contains(s.Id)).ToDictionary(s => s.Id, s => s);
+        var userIds = allStudents.Values.Select(s => s.UserId).ToHashSet();
+        var allUsers = (await _unitOfWork.Repository<AppUser>().GetAllAsync()).Where(u => userIds.Contains(u.Id)).ToDictionary(u => u.Id, u => u);
 
+        var result = new List<CourseGradeDto>();
         foreach (var enrollment in enrollments)
         {
-            var student = await _unitOfWork.Repository<Student>().GetByIdAsync(enrollment.StudentId);
-            if (student != null)
+            if (allStudents.TryGetValue(enrollment.StudentId, out var student))
             {
+                allUsers.TryGetValue(student.UserId, out var appUser);
+                string realName = appUser != null ? $"{appUser.FirstName} {appUser.LastName}".Trim() : $"Sinh viên {student.StudentId}";
+
                 result.Add(new CourseGradeDto
                 {
                     EnrollmentId = enrollment.Id,
                     StudentId = student.Id,
                     StudentCode = student.StudentId,
-                    StudentName = "Student " + student.StudentId, // Placeholder because we don't eager load AppUser in Generic Repo yet
+                    StudentName = realName,
                     Grade = enrollment.Grade
                 });
             }

@@ -1,0 +1,91 @@
+@startuml use_case
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+actor "Administrator" as Admin #LightCoral
+actor "Faculty" as Faculty #LightGreen
+actor "Student" as Student #LightBlue
+
+rectangle "Hệ thống Quản lý Sinh viên (SIMS)" {
+    ' Authentication
+    usecase "Đăng nhập & Xác thực" as UC_Login
+    usecase "Xem thông tin hồ sơ" as UC_Profile
+
+    ' Administrator Use Cases
+    package "Quản trị Hệ thống (Administrator)" #FFF5F5 {
+        usecase "Quản lý Sinh viên\n(Xem, Tạo, Sửa, Xóa mềm)" as UC_ManageStudents
+        usecase "Quản lý Môn học\n(Xem, Tạo, Sửa, Xóa mềm)" as UC_ManageCourses
+        usecase "Xuất danh sách sinh viên\n(CSV, Excel)" as UC_ExportStudents
+        usecase "Xuất danh sách môn học\n(CSV, Excel)" as UC_ExportCourses
+        usecase "Xuất lượt đăng ký theo kỳ\n(CSV, Excel)" as UC_ExportEnrollmentsSem
+        usecase "Xuất bảng điểm theo môn\n(CSV, Excel)" as UC_ExportCourseGrades
+    }
+
+    ' Faculty Use Cases
+    package "Cổng Giảng viên (Faculty)" #F0FFF0 {
+        usecase "Xem môn được phân công" as UC_ViewAssignedCourses
+        usecase "Xem danh sách điểm lớp học" as UC_ViewClassGrades
+        usecase "Nhập & Cập nhật điểm" as UC_UpdateGrades
+        usecase "Xuất bảng điểm môn phụ trách\n(CSV, Excel)" as UC_ExportFacultyGrades
+    }
+
+    ' Student Use Cases
+    package "Cổng Sinh viên (Student Portal)" #F0F8FF {
+        usecase "Xem môn học có thể đăng ký" as UC_ViewAvailableCourses
+        usecase "Đăng ký môn học" as UC_EnrollCourse
+        usecase "Hủy đăng ký môn học" as UC_DropCourse
+        usecase "Xem điểm cá nhân & GPA/CPA" as UC_ViewMyGrades
+        usecase "Xuất điểm cá nhân\n(CSV, Excel, PDF)" as UC_ExportMyGrades
+        usecase "Xuất môn đã đăng ký\n(CSV, Excel)" as UC_ExportMyEnrollments
+    }
+
+    ' Supporting Services / System Inclusions
+    package "Dịch vụ Hệ thống" #F9F9F9 {
+        usecase "Kiểm tra môn tiên quyết & giới hạn tín chỉ" as UC_CheckPrereq
+        usecase "Ghi nhật ký hệ thống\n(AuditLog)" as UC_AuditLog
+    }
+}
+
+' Admin connections
+Admin --> UC_Login
+Admin --> UC_ManageStudents
+Admin --> UC_ManageCourses
+Admin --> UC_ExportStudents
+Admin --> UC_ExportCourses
+Admin --> UC_ExportEnrollmentsSem
+Admin --> UC_ExportCourseGrades
+
+' Faculty connections
+Faculty --> UC_Login
+Faculty --> UC_ViewAssignedCourses
+Faculty --> UC_ViewClassGrades
+Faculty --> UC_UpdateGrades
+Faculty --> UC_ExportFacultyGrades
+
+' Student connections
+Student --> UC_Login
+Student --> UC_Profile
+Student --> UC_ViewAvailableCourses
+Student --> UC_EnrollCourse
+Student --> UC_DropCourse
+Student --> UC_ViewMyGrades
+Student --> UC_ExportMyGrades
+Student --> UC_ExportMyEnrollments
+
+' Include relationships
+UC_EnrollCourse ..> UC_CheckPrereq : <<include>>
+UC_EnrollCourse ..> UC_AuditLog : <<include>> (Observer)
+UC_ExportStudents ..> UC_AuditLog : <<include>>
+UC_ExportCourses ..> UC_AuditLog : <<include>>
+UC_ExportEnrollmentsSem ..> UC_AuditLog : <<include>>
+UC_ExportCourseGrades ..> UC_AuditLog : <<include>>
+UC_ExportFacultyGrades ..> UC_AuditLog : <<include>>
+UC_ExportMyGrades ..> UC_AuditLog : <<include>>
+UC_ExportMyEnrollments ..> UC_AuditLog : <<include>>
+
+@enduml
+

@@ -1,0 +1,276 @@
+@startuml class_diagram
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam linetype ortho
+
+' ========================================================
+' DOMAIN ENTITIES
+' ========================================================
+package "SIMS.Domain.Entities" #F8F9FA {
+    abstract class BaseEntity {
+        + Id : Guid
+        + CreatedAt : DateTime
+        + UpdatedAt : DateTime?
+        + IsDeleted : bool
+    }
+
+    class Student {
+        + UserId : string
+        + StudentId : string
+        + DateOfBirth : DateTime
+        + Address : string
+        + EnrollmentDate : DateTime
+        + DepartmentId : Guid
+    }
+
+    class Faculty {
+        + UserId : string
+        + FacultyId : string
+        + Title : string
+        + HireDate : DateTime
+        + DepartmentId : Guid
+    }
+
+    class Department {
+        + Name : string
+        + Code : string
+    }
+
+    class Course {
+        + Code : string
+        + Title : string
+        + Description : string
+        + Credits : int
+        + DepartmentId : Guid
+        + AssignedFacultyId : Guid?
+        + PrerequisiteCourseId : Guid?
+    }
+
+    class Enrollment {
+        + StudentId : Guid
+        + CourseId : Guid
+        + SemesterId : Guid
+        + EnrollmentDate : DateTime
+        + Grade : double?
+    }
+
+    class Semester {
+        + Name : string
+        + StartDate : DateTime
+        + EndDate : DateTime
+        + IsActive : bool
+    }
+
+    class AcademicRecord {
+        + StudentId : Guid
+        + SemesterId : Guid
+        + GPA : double
+        + CPA : double
+        + AcademicStatus : string
+    }
+
+    class AuditLog {
+        + UserId : string
+        + Action : string
+        + EntityName : string
+        + EntityId : string
+        + Changes : string
+    }
+
+    class AppUser {
+        + FirstName : string
+        + LastName : string
+        + IsActive : bool
+    }
+}
+
+' Entity Inheritance
+BaseEntity <|-- Student
+BaseEntity <|-- Faculty
+BaseEntity <|-- Department
+BaseEntity <|-- Course
+BaseEntity <|-- Enrollment
+BaseEntity <|-- Semester
+BaseEntity <|-- AcademicRecord
+BaseEntity <|-- AuditLog
+
+' Aggregation & Composition in Domain
+Department "1" o-- "0..*" Faculty : contains >
+Department "1" o-- "0..*" Student : contains >
+Department "1" o-- "0..*" Course : contains >
+
+Course "1" *-- "0..*" Enrollment : registers >
+Student "1" -- "0..*" Enrollment : enrolls in >
+Semester "1" -- "0..*" Enrollment : held in >
+
+Faculty "0..1" <-- "0..*" Course : assigned to <
+Course "0..1" <-- "0..*" Course : prerequisite <
+AppUser "1" <-- "0..1" Student : linked user <
+AppUser "1" <-- "0..1" Faculty : linked user <
+Student "1" -- "0..*" AcademicRecord
+Semester "1" -- "0..*" AcademicRecord
+
+' ========================================================
+' DESIGN PATTERNS: STRATEGY (Behavioral)
+' ========================================================
+package "Strategy Pattern (GPA / CPA)" #E8F4F8 {
+    interface IGpaCalculationStrategy {
+        + ScaleName : string
+        + ConvertGrade(gradeOn10Scale : double) : double
+        + CalculateGpa(semesterGrades : IEnumerable<GradeItem>) : double
+        + CalculateCpa(allGrades : IEnumerable<GradeItem>) : double
+        + DetermineAcademicStatus(cpa : double) : string
+    }
+
+    class TenPointStrategy implements IGpaCalculationStrategy {
+        + ScaleName : string = "Thang điểm 10"
+        + ConvertGrade(grade : double) : double
+        + CalculateGpa(semesterGrades) : double
+        + CalculateCpa(allGrades) : double
+        + DetermineAcademicStatus(cpa : double) : string
+    }
+
+    class FourPointStrategy implements IGpaCalculationStrategy {
+        + ScaleName : string = "Thang điểm 4"
+        + ConvertGrade(grade : double) : double
+        + CalculateGpa(semesterGrades) : double
+        + CalculateCpa(allGrades) : double
+        + DetermineAcademicStatus(cpa : double) : string
+    }
+
+    interface ITranscriptService {
+        + CurrentStrategy : IGpaCalculationStrategy
+        + SetStrategy(strategy : IGpaCalculationStrategy) : void
+        + CalculateStudentTranscriptAsync(studentId : Guid, semesterId : Guid?) : Task<GpaCalculationResult>
+    }
+
+    class TranscriptService implements ITranscriptService {
+        - _strategy : IGpaCalculationStrategy
+        - _unitOfWork : IUnitOfWork
+    }
+
+    TranscriptService o-> IGpaCalculationStrategy : executes with >
+}
+
+' ========================================================
+' DESIGN PATTERNS: FACTORY METHOD (Creational)
+' ========================================================
+package "Factory Method Pattern (Identity)" #FFF8E7 {
+    interface IUserFactory {
+        + CreateUserWithRoleAsync(request : CreateUserRequest) : Task<(bool Succeeded, string UserId, IEnumerable<string> Errors)>
+    }
+
+    class UserFactory implements IUserFactory {
+        - _userManager : UserManager<AppUser>
+        - _roleManager : RoleManager<IdentityRole>
+        + CreateUserWithRoleAsync(request) : Task
+    }
+}
+
+' ========================================================
+' DESIGN PATTERNS: DECORATOR (Structural)
+' ========================================================
+package "Decorator Pattern (Caching Repository)" #F3E8FD {
+    interface IGenericRepository<T> {
+        + GetByIdAsync(id : Guid) : Task<T?>
+        + GetAllAsync() : Task<IEnumerable<T>>
+        + FindAsync(predicate) : Task<IEnumerable<T>>
+        + AddAsync(entity : T) : Task
+        + Update(entity : T) : void
+        + Remove(entity : T) : void
+    }
+
+    class GenericRepository<T> implements IGenericRepository {
+        # _context : ApplicationDbContext
+        # _dbSet : DbSet<T>
+    }
+
+    class CachingStudentRepository implements IGenericRepository {
+        - _innerRepository : IGenericRepository<Student>
+        - _cache : IMemoryCache
+        + GetByIdAsync(id : Guid) : Task<Student?>
+    }
+
+    CachingStudentRepository o-> IGenericRepository : decorates >
+}
+
+' ========================================================
+' DESIGN PATTERNS: OBSERVER (Behavioral)
+' ========================================================
+package "Observer Pattern (Enrollment Events)" #EAF7EA {
+    class EnrollmentCreatedEvent {
+        + EnrollmentId : Guid
+        + StudentId : Guid
+        + StudentCode : string
+        + CourseId : Guid
+        + CourseCode : string
+        + SemesterId : Guid
+        + EnrollmentDate : DateTime
+    }
+
+    interface IEnrollmentObserver {
+        + OnEnrollmentCreatedAsync(eventData : EnrollmentCreatedEvent) : Task
+    }
+
+    interface IEnrollmentSubject {
+        + Attach(observer : IEnrollmentObserver) : void
+        + Detach(observer : IEnrollmentObserver) : void
+        + NotifyAsync(eventData : EnrollmentCreatedEvent) : Task
+    }
+
+    class EnrollmentSubject implements IEnrollmentSubject {
+        - _observers : List<IEnrollmentObserver>
+        + Attach(observer) : void
+        + Detach(observer) : void
+        + NotifyAsync(eventData) : Task
+    }
+
+    class AuditLogEnrollmentObserver implements IEnrollmentObserver {
+        - _unitOfWork : IUnitOfWork
+        + OnEnrollmentCreatedAsync(eventData) : Task
+    }
+
+    class NotificationEnrollmentObserver implements IEnrollmentObserver {
+        - _logger : ILogger
+        + OnEnrollmentCreatedAsync(eventData) : Task
+    }
+
+    EnrollmentSubject o-> IEnrollmentObserver : notifies >
+    IEnrollmentObserver ..> EnrollmentCreatedEvent : consumes >
+}
+
+' ========================================================
+' EXPORT SUBSYSTEM (SIMS.Infrastructure)
+' ========================================================
+package "Export Subsystem" #FFF0F5 {
+    interface IExportService {
+        + ExportStudentsAsync(userId, format) : Task<ExportResult>
+        + ExportCoursesAsync(userId, format) : Task<ExportResult>
+        + ExportEnrollmentsBySemesterAsync(userId, semesterId, format) : Task<ExportResult>
+        + ExportCourseGradesAsync(userId, courseId, format) : Task<ExportResult>
+        + ExportFacultyCourseGradesAsync(userId, courseId, format) : Task<ExportResult>
+        + ExportStudentGradesAsync(userId, format) : Task<ExportResult>
+        + ExportStudentEnrollmentsAsync(userId, format) : Task<ExportResult>
+    }
+
+    class ExportService implements IExportService {
+        - _csvExporter : CsvExporter
+        - _excelExporter : ExcelExporter
+        - _pdfExporter : PdfExporter
+        - _unitOfWork : IUnitOfWork
+    }
+
+    class CsvExporter
+    class ExcelExporter
+    class PdfExporter
+
+    ExportService o-> CsvExporter
+    ExportService o-> ExcelExporter
+    ExportService o-> PdfExporter
+}
+
+@enduml
+

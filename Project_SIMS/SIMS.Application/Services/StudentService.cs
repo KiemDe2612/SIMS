@@ -81,7 +81,18 @@ public class StudentService : IStudentService
         var student = await _unitOfWork.Repository<Student>().GetByIdAsync(id);
         if (student == null) return false;
 
-        _unitOfWork.Repository<Student>().Remove(student);
+        // Kiểm tra nếu đã có enrollment thì không cho xóa
+        var enrollments = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.StudentId == id);
+        if (enrollments.Any())
+        {
+            throw new InvalidOperationException("Không thể xóa sinh viên này vì đã có lịch sử đăng ký học phần trong hệ thống.");
+        }
+
+        // Chuyển sang Soft Delete
+        student.IsDeleted = true;
+        student.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Repository<Student>().Update(student);
         var result = await _unitOfWork.CompleteAsync();
         return result > 0;
     }
