@@ -32,13 +32,17 @@ public class FacultyService : IFacultyService
 
     public async Task<IEnumerable<CourseGradeDto>> GetCourseGradesAsync(Guid courseId)
     {
-        var enrollments = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.CourseId == courseId);
-        var result = new List<CourseGradeDto>();
+        var enrollments = (await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.CourseId == courseId)).ToList();
+        if (enrollments.Count == 0) return new List<CourseGradeDto>();
 
+        var studentIds = enrollments.Select(e => e.StudentId).Distinct().ToList();
+        var students = await _unitOfWork.Repository<Student>().FindAsync(s => studentIds.Contains(s.Id));
+        var studentsById = students.ToDictionary(s => s.Id);
+
+        var result = new List<CourseGradeDto>();
         foreach (var enrollment in enrollments)
         {
-            var student = await _unitOfWork.Repository<Student>().GetByIdAsync(enrollment.StudentId);
-            if (student != null)
+            if (studentsById.TryGetValue(enrollment.StudentId, out var student))
             {
                 result.Add(new CourseGradeDto
                 {
