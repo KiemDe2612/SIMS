@@ -1,0 +1,29 @@
+@using Microsoft.AspNetCore.Identity
+@using SIMS.Domain.Entities
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    var name = UserManager.GetUserName(User) ?? "?";
+    <li class="nav-item user-chip">
+        <span class="avatar" aria-hidden="true">@name.Substring(0, 1).ToUpper()</span>
+        <span class="d-none d-md-inline">@name</span>
+    </li>
+    <li class="nav-item">
+        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Đăng xuất</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+    </li>
+}
+</ul>

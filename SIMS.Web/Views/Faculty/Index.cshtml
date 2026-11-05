@@ -1,0 +1,55 @@
+@model IEnumerable<SIMS.Domain.Entities.Course>
+
+@{
+    ViewData["Title"] = "Assigned Courses";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-primary"><i class="bi bi-book"></i> @ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item active">Assigned Courses</li>
+    </ol>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0"><i class="bi bi-table me-1"></i> Danh sách lớp đang phụ trách</h5>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">Hiện tại bạn chưa được phân công môn học nào.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã môn</th>
+                                <th>Tên môn</th>
+                                <th>Số tín chỉ</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@course.Code</span></td>
+                                    <td class="fw-bold text-dark">@course.Title</td>
+                                    <td>@course.Credits</td>
+                                    <td class="text-end">
+                                        <a asp-action="CourseGrades" asp-route-id="@course.Id" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil-square"></i> Nhập điểm
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

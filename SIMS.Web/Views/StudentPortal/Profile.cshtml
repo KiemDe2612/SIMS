@@ -1,0 +1,79 @@
+@model SIMS.Application.DTOs.MyProfileDto
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 text-primary"><i class="bi bi-person-badge"></i> @ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Hồ sơ cá nhân</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-4">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=random&size=128" alt="avatar" class="rounded-circle img-fluid mb-3" style="width: 150px;">
+                    <h5 class="my-3">@Model.FullName</h5>
+                    <p class="text-muted mb-1"><i class="bi bi-mortarboard-fill text-primary"></i> Sinh viên Đại học</p>
+                    <p class="text-muted mb-4"><span class="badge bg-primary px-3 py-2">Mã SV: @Model.StudentId</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-8">
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-header bg-white pt-4 pb-0">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Thông tin chi tiết</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <p class="mb-0 fw-bold">Họ và tên</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">@Model.FullName</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <p class="mb-0 fw-bold">Email (Tài khoản)</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">@Model.Email</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <p class="mb-0 fw-bold">Khoa (Department)</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">@Model.DepartmentName</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <p class="mb-0 fw-bold">Ngày sinh</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <p class="mb-0 fw-bold">Địa chỉ</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">@Model.Address</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

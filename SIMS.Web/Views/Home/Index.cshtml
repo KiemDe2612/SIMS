@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = "Tổng quan";
+    var departments = ((List<KeyValuePair<string, int>>)ViewBag.DepartmentCounts)
+        .Select(p => new { Name = p.Key, Count = p.Value }).ToList();
+    var max = Math.Max(1, departments.Any() ? departments.Max(d => d.Count) : 1);
+}
+
+<div class="page-head">
+    <div>
+        <h1>Tổng quan</h1>
+        <p>Số liệu hiện tại của hệ thống quản lý sinh viên.</p>
+    </div>
+    @if (User.IsInRole("Administrator"))
+    {
+        <a asp-controller="Students" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Thêm sinh viên
+        </a>
+    }
+</div>
+
+<section class="kpi-strip" aria-label="Số liệu chính">
+    <a class="kpi" href="/Students">
+        <div class="kpi-label">Sinh viên</div>
+        <div class="kpi-value">@ViewBag.TotalStudents</div>
+        <div class="kpi-note">Xem danh sách</div>
+    </a>
+    <a class="kpi" href="/Courses">
+        <div class="kpi-label">Khóa học</div>
+        <div class="kpi-value">@ViewBag.TotalCourses</div>
+        <div class="kpi-note">Xem danh sách</div>
+    </a>
+    <a class="kpi" href="/Faculties">
+        <div class="kpi-label">Giảng viên</div>
+        <div class="kpi-value">@ViewBag.TotalFaculties</div>
+        <div class="kpi-note">Xem danh sách</div>
+    </a>
+</section>
+
+<div class="grid-2">
+    <section class="card" aria-labelledby="dept-title">
+        <div class="panel-head">
+            <h2 id="dept-title">Sinh viên theo khoa</h2>
+            <span class="text-muted" style="font-size:.85rem">@ViewBag.TotalStudents sinh viên</span>
+        </div>
+        <div class="card-body">
+            <ul class="bar-list">
+                @foreach (var d in departments)
+                {
+                    <li>
+                        <div class="bar-row"><span>@d.Name</span><b>@d.Count</b></div>
+                        <div class="bar-track"><div class="bar-fill" style="width:@((d.Count * 100 / max))%"></div></div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="card" aria-labelledby="recent-title">
+        <div class="panel-head">
+            <h2 id="recent-title">Đăng ký gần đây</h2>
+        </div>
+        <div class="card-body">
+            <div class="empty">Chưa có đăng ký môn học nào.</div>
+        </div>
+    </section>
+</div>

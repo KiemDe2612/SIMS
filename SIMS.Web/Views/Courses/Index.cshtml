@@ -1,0 +1,78 @@
+@model IEnumerable<SIMS.Application.DTOs.CourseDto>
+
+@{
+    ViewData["Title"] = "Quản lý Khóa học";
+}
+
+<div>
+    <div class="page-head">
+        <div>
+            <h1>@ViewData["Title"]</h1>
+            <p>@Model.Count() môn học</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Thêm Khóa học mới
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white pt-4 pb-0">
+            <h5 class="mb-0">Danh sách các môn học (Courses)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã môn</th>
+                            <th>Tên môn học</th>
+                            <th>Tín chỉ</th>
+                            <th>Khoa (Department)</th>
+                            <th>Giảng viên phụ trách</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@item.Code</span></td>
+                                <td class="fw-bold">@item.Title</td>
+                                <td>@item.Credits</td>
+                                <td>@item.DepartmentName</td>
+                                <td>
+                                    @if(item.AssignedFacultyName == "Assigned")
+                                    {
+                                        <span class="badge bg-success">Đã phân công</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Chưa phân công</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa môn học này?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

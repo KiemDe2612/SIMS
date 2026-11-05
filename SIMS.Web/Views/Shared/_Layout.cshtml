@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SIMS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="app-top">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <button class="nav-toggle" type="button" aria-label="Mở menu" id="navToggle"><i class="bi bi-list"></i></button>
+        }
+        <a class="app-brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+                <rect width="30" height="30" rx="8" fill="#0f766e"/>
+                <path d="M7 9h6.2a2 2 0 0 1 1.8 1v11a3 3 0 0 0-2-.8H7z" fill="#fff"/>
+                <path d="M23 9h-6.2a2 2 0 0 0-1.8 1v11a3 3 0 0 1 2-.8H23z" fill="#fff" fill-opacity=".72"/>
+            </svg>
+            <span>SIMS<small>Quản lý sinh viên</small></span>
+        </a>
+        <div class="spacer"></div>
+        <partial name="_LoginPartial" />
+    </header>
+
+    <div class="app-shell">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+        <nav class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+            <a href="/" class="sidebar-link active">
+                <i class="bi bi-grid-1x2"></i> Tổng quan
+            </a>
+
+            @if (User.IsInRole("Administrator"))
+            {
+                <div class="sb-sidenav-menu-heading">Quản trị viên</div>
+                <a href="/Students" class="sidebar-link">
+                    <i class="bi bi-people"></i> Quản lý Sinh viên
+                </a>
+                <a href="/Courses" class="sidebar-link">
+                    <i class="bi bi-journal-bookmark"></i> Quản lý Khóa học
+                </a>
+            }
+
+            @if (User.IsInRole("Student"))
+            {
+                <div class="sb-sidenav-menu-heading">Góc học tập</div>
+                <a href="/StudentPortal/Profile" class="sidebar-link">
+                    <i class="bi bi-person-badge"></i> Hồ sơ cá nhân
+                </a>
+                <a href="/StudentPortal/Registration" class="sidebar-link">
+                    <i class="bi bi-plus-square"></i> Đăng ký môn học
+                </a>
+                <a href="/StudentPortal/MyGrades" class="sidebar-link">
+                    <i class="bi bi-bar-chart"></i> Bảng điểm (CPA)
+                </a>
+            }
+
+            @if (User.IsInRole("Faculty") || User.IsInRole("Administrator"))
+            {
+                <div class="sb-sidenav-menu-heading">Giảng viên</div>
+                <a href="/Faculty" class="sidebar-link">
+                    <i class="bi bi-easel"></i> Môn phụ trách &amp; Điểm
+                </a>
+            }
+        </nav>
+        }
+
+        <div class="main-content">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var currentUrl = window.location.pathname;
+            document.querySelectorAll('.sidebar-link').forEach(function (link) {
+                link.classList.remove('active');
+                var href = link.getAttribute('href');
+                if (href === currentUrl || (href !== '/' && currentUrl.startsWith(href))) {
+                    link.classList.add('active');
+                }
+                if (currentUrl === '/' && href === '/') {
+                    link.classList.add('active');
+                }
+            });
+            var t = document.getElementById('navToggle');
+            if (t) t.addEventListener('click', function () { document.body.classList.toggle('nav-open'); });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
