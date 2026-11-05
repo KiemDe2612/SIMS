@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SIMS.Application\SIMS.Application.csproj" />
     <ProjectReference Include="..\SIMS.Domain\SIMS.Domain.csproj" />
+    <ProjectReference Include="..\SIMS.Infrastructure\SIMS.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
