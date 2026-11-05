@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SIMS.Application.DTOs;
 using SIMS.Application.Interfaces;
+using SIMS.Domain.Constants;
 using SIMS.Domain.Entities;
 
 namespace SIMS.Web.Controllers;
@@ -28,7 +29,7 @@ public class StudentsController : Controller
         {
             // Note: In a real enterprise app, we'd use a raw SQL query or custom repo method with Include to avoid N+1 queries.
             // But this works for our small demo.
-            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + AppConstants.DefaultEmailDomain);
             if (appUser != null)
             {
                 student.FirstName = appUser.FirstName;
@@ -52,7 +53,7 @@ public class StudentsController : Controller
         if (ModelState.IsValid)
         {
             // 1. Create Identity User
-            var email = $"{model.StudentId.ToLower()}@sims.com";
+            var email = $"{model.StudentId.ToLower()}{AppConstants.DefaultEmailDomain}";
             var newUser = new AppUser
             {
                 UserName = email,
@@ -62,7 +63,7 @@ public class StudentsController : Controller
                 LastName = model.LastName
             };
 
-            var result = await _userManager.CreateAsync(newUser, $"{model.StudentId}@123");
+            var result = await _userManager.CreateAsync(newUser, $"{model.StudentId}{AppConstants.DefaultPasswordSuffix}");
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(newUser, "Student");
@@ -91,7 +92,7 @@ public class StudentsController : Controller
         if (student == null) return NotFound();
 
         // Get AppUser for name
-        var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+        var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + AppConstants.DefaultEmailDomain);
         
         var model = new UpdateStudentDto
         {
@@ -121,7 +122,7 @@ public class StudentsController : Controller
             var student = await _studentService.GetStudentByIdAsync(id);
             if (student != null)
             {
-                var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+                var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + AppConstants.DefaultEmailDomain);
                 if (appUser != null)
                 {
                     appUser.FirstName = model.FirstName;
@@ -146,7 +147,7 @@ public class StudentsController : Controller
         if (student != null)
         {
             // Delete Identity user
-            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + "@sims.com");
+            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + AppConstants.DefaultEmailDomain);
             if (appUser != null)
             {
                 await _userManager.DeleteAsync(appUser);
