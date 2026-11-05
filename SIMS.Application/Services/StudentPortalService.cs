@@ -50,12 +50,14 @@ public class StudentPortalService : IStudentPortalService
         var semesters = await _unitOfWork.Repository<Semester>().FindAsync(s => s.IsActive);
         var activeSemester = semesters.FirstOrDefault();
         
-        var enrollments = new List<Enrollment>();
+        var enrolledCourseIds = new HashSet<Guid>();
         if (activeSemester != null)
         {
             var enr = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.StudentId == student.Id && e.SemesterId == activeSemester.Id);
-            enrollments = enr.ToList();
+            enrolledCourseIds = enr.Select(e => e.CourseId).ToHashSet();
         }
+
+        var departmentNames = departments.ToDictionary(d => d.Id, d => d.Name);
 
         return allCourses.Select(c => new AvailableCourseDto
         {
@@ -63,8 +65,8 @@ public class StudentPortalService : IStudentPortalService
             Code = c.Code,
             Title = c.Title,
             Credits = c.Credits,
-            DepartmentName = departments.FirstOrDefault(d => d.Id == c.DepartmentId)?.Name ?? "N/A",
-            IsEnrolled = enrollments.Any(e => e.CourseId == c.Id)
+            DepartmentName = departmentNames.GetValueOrDefault(c.DepartmentId) ?? "N/A",
+            IsEnrolled = enrolledCourseIds.Contains(c.Id)
         });
     }
 
