@@ -39,6 +39,29 @@ public class FacultyController : Controller
         return View(grades);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportCourseGrades(Guid id, [FromServices] ICsvExportService csvExportService)
+    {
+        var course = await _facultyService.GetCourseByIdAsync(id);
+        if (course == null) return NotFound();
+
+        if (!User.IsInRole("Administrator"))
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var assignedCourses = await _facultyService.GetAssignedCoursesAsync(userId);
+            if (!assignedCourses.Any(c => c.Id == id))
+            {
+                return Forbid();
+            }
+        }
+
+        var bytes = await csvExportService.ExportCourseGradesAsync(id);
+        var fileName = $"grades_{course.Code}_{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveGrades(Guid courseId, List<CourseGradeUpdateDto> updates)

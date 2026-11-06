@@ -22,6 +22,14 @@ public class CoursesController : Controller
         return View(courses);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportCsv([FromServices] ICsvExportService csvExportService)
+    {
+        var bytes = await csvExportService.ExportCoursesAsync();
+        var fileName = $"courses_{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
     public async Task<IActionResult> Create()
     {
         ViewBag.Departments = new SelectList(await _courseService.GetDepartmentsAsync(), "Id", "Name");

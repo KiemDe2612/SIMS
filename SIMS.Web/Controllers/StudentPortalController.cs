@@ -69,4 +69,13 @@ public class StudentPortalController : Controller
         var grades = await _studentPortalService.GetMyGradesAsync(GetUserId());
         return View(grades);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportTranscript([FromServices] ICsvExportService csvExportService)
+    {
+        var userId = GetUserId();
+        var bytes = await csvExportService.ExportMyTranscriptAsync(userId);
+        var fileName = $"transcript_{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
 }

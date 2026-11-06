@@ -40,6 +40,26 @@ public class StudentsController : Controller
         return View(students);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportCsv([FromServices] ICsvExportService csvExportService)
+    {
+        var students = (await _studentService.GetAllStudentsAsync()).ToList();
+        foreach (var student in students)
+        {
+            var appUser = _userManager.Users.FirstOrDefault(u => u.Email == student.StudentId + AppConstants.DefaultEmailDomain);
+            if (appUser != null)
+            {
+                student.FirstName = appUser.FirstName;
+                student.LastName = appUser.LastName;
+                student.Email = appUser.Email ?? "";
+            }
+        }
+
+        var bytes = await csvExportService.ExportStudentsAsync(students);
+        var fileName = $"students_{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
     public async Task<IActionResult> Create()
     {
         ViewBag.Departments = new SelectList(await _studentService.GetDepartmentsAsync(), "Id", "Name");
