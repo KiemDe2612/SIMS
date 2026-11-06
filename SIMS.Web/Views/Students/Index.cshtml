@@ -10,9 +10,14 @@
             <h1>@ViewData["Title"]</h1>
             <p>@Model.Count() sinh viên toàn trường</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Thêm Sinh viên mới
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportCsv" class="btn btn-outline-secondary">
+                <i class="bi bi-download"></i> Export CSV
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Thêm Sinh viên mới
+            </a>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
