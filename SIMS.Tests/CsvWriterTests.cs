@@ -101,3 +101,4 @@ public class CsvWriterTests
         decoded.Should().Be(text);
     }
 }
+

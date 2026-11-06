@@ -28,6 +28,7 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IFacultyService, FacultyService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentPortalService, StudentPortalService>();
+builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
